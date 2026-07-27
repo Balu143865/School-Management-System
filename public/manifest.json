@@ -1,0 +1,8 @@
+{
+  "short_name": "Greenwood SMS",
+  "name": "Greenwood International Academy School Management",
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "display": "standalone"
+}
