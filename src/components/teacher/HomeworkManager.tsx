@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Homework, HomeworkSubmission, ClassRoom, Subject } from '../../types';
 import { api } from '../../lib/api';
 import { Modal } from '../common/Modal';
-import { FileText, Plus, CheckCircle2, Award, ExternalLink } from 'lucide-react';
+import { FileText, Plus, CheckCircle2, Award, ExternalLink, Camera } from 'lucide-react';
+import { DocumentScannerModal } from '../common/DocumentScannerModal';
 
 export const HomeworkManager: React.FC = () => {
   const [homeworkList, setHomeworkList] = useState<Homework[]>([]);
@@ -13,6 +14,7 @@ export const HomeworkManager: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [selectedSub, setSelectedSub] = useState<HomeworkSubmission | null>(null);
 
   const [hwForm, setHwForm] = useState({
@@ -90,13 +92,23 @@ export const HomeworkManager: React.FC = () => {
           <p className="text-xs text-slate-500">Assign problem sets, track due dates, and evaluate student work.</p>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-xs transition shadow-xs"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Create Homework</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsScannerOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-xs transition shadow-xs"
+          >
+            <Camera className="w-4 h-4" />
+            <span>Scan Document / Permission Slip</span>
+          </button>
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl text-xs transition shadow-xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Homework</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -297,6 +309,14 @@ export const HomeworkManager: React.FC = () => {
           </button>
         </form>
       </Modal>
+
+      {/* Document Scanner Modal */}
+      <DocumentScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        documentType="assignment"
+        documentTitle="Teacher_Assignment_Permission_Slip"
+      />
     </div>
   );
 };

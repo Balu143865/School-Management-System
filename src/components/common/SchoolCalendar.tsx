@@ -20,19 +20,23 @@ import {
   ListFilter,
   Download,
   Info,
-  CheckCircle2
+  CheckCircle2,
+  RefreshCw,
+  Palette
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
-import { CalendarEvent } from '../../types';
+import { CalendarEvent, Exam } from '../../types';
 
 export const SchoolCalendar: React.FC = () => {
   const { user } = useAuth();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncToast, setSyncToast] = useState<string | null>(null);
   
   // Date Navigation State
-  const [currentDate, setCurrentDate] = useState<Date>(new Date(2026, 6, 26)); // Default Jul 2026 or active date
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
   
   // Filter States
@@ -55,7 +59,8 @@ export const SchoolCalendar: React.FC = () => {
     targetRole: 'all',
     className: 'All Classes',
     location: 'Main Campus',
-    organizer: user?.name || 'School Admin'
+    organizer: user?.name || 'School Admin',
+    color: 'blue'
   });
 
   useEffect(() => {
@@ -66,11 +71,112 @@ export const SchoolCalendar: React.FC = () => {
     try {
       setLoading(true);
       const data = await api.getCalendarEvents();
-      setEvents(data);
+      
+      // Fetch exams from ExamManager to auto-sync if any missing
+      const examList = await api.getExams().catch(() => [] as Exam[]);
+      const existingKeys = new Set(data.map(e => `${e.title.toLowerCase()}_${e.date}`));
+
+      const newlyImported: CalendarEvent[] = [];
+      for (const exam of examList) {
+        const titleKey = `[exam] ${exam.title.toLowerCase()} - ${exam.subjectName.toLowerCase()}_${exam.date}`;
+        const titleKeyAlt = `${exam.title.toLowerCase()} (${exam.subjectName.toLowerCase()})_${exam.date}`;
+        
+        if (!existingKeys.has(titleKey) && !existingKeys.has(titleKeyAlt)) {
+          let examColor = 'rose';
+          if (exam.type === 'Final Exam') examColor = 'red';
+          else if (exam.type === 'Midterm') examColor = 'rose';
+          else if (exam.type === 'Unit Test') examColor = 'amber';
+          else if (exam.type === 'Quiz') examColor = 'purple';
+
+          try {
+            const created = await api.createCalendarEvent({
+              title: `[Exam] ${exam.title} - ${exam.subjectName}`,
+              description: `[Auto-Imported from ExamManager] ${exam.type} for ${exam.subjectName} (${exam.className}). Total Marks: ${exam.totalMarks}, Passing Marks: ${exam.passingMarks}. Duration: ${exam.durationMinutes} mins.`,
+              date: exam.date,
+              startTime: exam.startTime || '09:00 AM',
+              type: 'exam',
+              targetRole: 'all',
+              className: exam.className,
+              location: 'Examination Hall',
+              organizer: 'Exam Coordinator / Teacher',
+              color: examColor
+            });
+            newlyImported.push(created);
+          } catch (e) {
+            console.error('Auto-import single exam failed:', e);
+          }
+        }
+      }
+
+      setEvents([...data, ...newlyImported]);
+      if (newlyImported.length > 0) {
+        showToast(`Auto-imported ${newlyImported.length} exam schedule item(s) from ExamManager.`);
+      }
     } catch (err) {
       console.error('Error fetching calendar events:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const showToast = (msg: string) => {
+    setSyncToast(msg);
+    setTimeout(() => {
+      setSyncToast(null);
+    }, 4000);
+  };
+
+  const handleSyncExams = async () => {
+    setIsSyncing(true);
+    try {
+      const examList = await api.getExams();
+      const currentCalendarEvents = await api.getCalendarEvents();
+      const existingKeys = new Set(
+        currentCalendarEvents.map((e) => `${e.title.toLowerCase()}_${e.date}`)
+      );
+
+      let importedCount = 0;
+      const createdEvents: CalendarEvent[] = [];
+
+      for (const exam of examList) {
+        const titleKey = `[exam] ${exam.title.toLowerCase()} - ${exam.subjectName.toLowerCase()}_${exam.date}`;
+        const titleKeyAlt = `${exam.title.toLowerCase()} (${exam.subjectName.toLowerCase()})_${exam.date}`;
+
+        if (!existingKeys.has(titleKey) && !existingKeys.has(titleKeyAlt)) {
+          let examColor = 'rose';
+          if (exam.type === 'Final Exam') examColor = 'red';
+          else if (exam.type === 'Midterm') examColor = 'rose';
+          else if (exam.type === 'Unit Test') examColor = 'amber';
+          else if (exam.type === 'Quiz') examColor = 'purple';
+
+          const created = await api.createCalendarEvent({
+            title: `[Exam] ${exam.title} - ${exam.subjectName}`,
+            description: `[Imported from ExamManager] ${exam.type} for ${exam.subjectName} (${exam.className}). Total Marks: ${exam.totalMarks}, Passing Marks: ${exam.passingMarks}. Duration: ${exam.durationMinutes} mins.`,
+            date: exam.date,
+            startTime: exam.startTime || '09:00 AM',
+            type: 'exam',
+            targetRole: 'all',
+            className: exam.className,
+            location: 'Examination Hall',
+            organizer: 'Exam Coordinator / Teacher',
+            color: examColor
+          });
+          createdEvents.push(created);
+          importedCount++;
+        }
+      }
+
+      if (importedCount > 0) {
+        setEvents((prev) => [...prev, ...createdEvents]);
+        showToast(`Successfully imported ${importedCount} exam date(s) from ExamManager!`);
+      } else {
+        showToast('All ExamManager schedules are already synchronized with the Calendar.');
+      }
+    } catch (err) {
+      console.error('Failed to sync exams:', err);
+      showToast('Failed to sync exam dates. Please try again.');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -79,12 +185,24 @@ export const SchoolCalendar: React.FC = () => {
     if (!newEvent.title || !newEvent.date) return;
 
     try {
+      // Auto-assign appropriate default color if not manually set
+      let assignedColor = newEvent.color;
+      if (!assignedColor) {
+        if (newEvent.type === 'holiday') assignedColor = 'emerald';
+        else if (newEvent.type === 'exam') assignedColor = 'rose';
+        else if (newEvent.type === 'meeting') assignedColor = 'indigo';
+        else if (newEvent.type === 'academic') assignedColor = 'teal';
+        else assignedColor = 'blue';
+      }
+
       const created = await api.createCalendarEvent({
         ...newEvent,
+        color: assignedColor,
         organizer: newEvent.organizer || user?.name || 'Administration'
       });
-      setEvents(prev => [...prev, created]);
+      setEvents((prev) => [...prev, created]);
       setIsAddModalOpen(false);
+      showToast(`Scheduled "${created.title}" successfully!`);
       setNewEvent({
         title: '',
         description: '',
@@ -95,7 +213,8 @@ export const SchoolCalendar: React.FC = () => {
         targetRole: 'all',
         className: 'All Classes',
         location: 'Main Campus',
-        organizer: user?.name || 'School Admin'
+        organizer: user?.name || 'School Admin',
+        color: 'blue'
       });
     } catch (err) {
       console.error('Failed to create calendar event:', err);
@@ -106,8 +225,9 @@ export const SchoolCalendar: React.FC = () => {
     if (!confirm('Are you sure you want to remove this event from the calendar?')) return;
     try {
       await api.deleteCalendarEvent(id);
-      setEvents(prev => prev.filter(e => e.id !== id));
+      setEvents((prev) => prev.filter((e) => e.id !== id));
       setSelectedEvent(null);
+      showToast('Event removed from calendar.');
     } catch (err) {
       console.error('Failed to delete calendar event:', err);
     }
@@ -135,7 +255,7 @@ export const SchoolCalendar: React.FC = () => {
   };
 
   const jumpToToday = () => {
-    setCurrentDate(new Date(2026, 6, 26)); // Fixed anchor for demo consistency
+    setCurrentDate(new Date());
   };
 
   // Helpers for Month Grid Generation
@@ -200,70 +320,145 @@ export const SchoolCalendar: React.FC = () => {
     return day;
   });
 
-  // Type Color Configuration
-  const getTypeBadgeStyle = (type: string) => {
-    switch (type) {
-      case 'exam':
-        return 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200';
-      case 'holiday':
-        return 'bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200';
-      case 'event':
-        return 'bg-blue-100 text-blue-900 border-blue-300 hover:bg-blue-200';
-      case 'meeting':
-        return 'bg-purple-100 text-purple-900 border-purple-300 hover:bg-purple-200';
-      case 'academic':
-        return 'bg-indigo-100 text-indigo-900 border-indigo-300 hover:bg-indigo-200';
+  // Advanced Type & Color Configuration for Exam vs Holiday differentiation
+  const getEventBadgeStyle = (evt: CalendarEvent) => {
+    let colorKey = evt.color;
+    if (!colorKey) {
+      if (evt.type === 'exam') {
+        const lower = (evt.title + ' ' + (evt.description || '')).toLowerCase();
+        if (lower.includes('final')) colorKey = 'red';
+        else if (lower.includes('midterm')) colorKey = 'rose';
+        else if (lower.includes('unit test')) colorKey = 'amber';
+        else if (lower.includes('quiz')) colorKey = 'purple';
+        else colorKey = 'rose';
+      } else if (evt.type === 'holiday') {
+        colorKey = 'emerald';
+      } else if (evt.type === 'event') {
+        colorKey = 'blue';
+      } else if (evt.type === 'meeting') {
+        colorKey = 'indigo';
+      } else if (evt.type === 'academic') {
+        colorKey = 'teal';
+      } else {
+        colorKey = 'slate';
+      }
+    }
+
+    switch (colorKey) {
+      case 'red':
+        return 'bg-red-100 dark:bg-red-950/80 text-red-900 dark:text-red-200 border-red-300 dark:border-red-800 hover:bg-red-200 dark:hover:bg-red-900/90';
+      case 'rose':
+        return 'bg-rose-100 dark:bg-rose-950/80 text-rose-900 dark:text-rose-200 border-rose-300 dark:border-rose-800 hover:bg-rose-200 dark:hover:bg-rose-900/90';
+      case 'amber':
+        return 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-800 hover:bg-amber-200 dark:hover:bg-amber-900/90';
+      case 'purple':
+        return 'bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-200 border-purple-300 dark:border-purple-800 hover:bg-purple-200 dark:hover:bg-purple-900/90';
+      case 'emerald':
+        return 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-200 dark:hover:bg-emerald-900/90';
+      case 'blue':
+        return 'bg-blue-100 dark:bg-blue-950/80 text-blue-900 dark:text-blue-200 border-blue-300 dark:border-blue-800 hover:bg-blue-200 dark:hover:bg-blue-900/90';
+      case 'indigo':
+        return 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-900 dark:text-indigo-200 border-indigo-300 dark:border-indigo-800 hover:bg-indigo-200 dark:hover:bg-indigo-900/90';
+      case 'teal':
+        return 'bg-teal-100 dark:bg-teal-950/80 text-teal-900 dark:text-teal-200 border-teal-300 dark:border-teal-800 hover:bg-teal-200 dark:hover:bg-teal-900/90';
       default:
-        return 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200';
+        return 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700';
     }
   };
 
-  const getTypeDotColor = (type: string) => {
-    switch (type) {
-      case 'exam': return 'bg-amber-500';
-      case 'holiday': return 'bg-emerald-500';
-      case 'event': return 'bg-blue-500';
-      case 'meeting': return 'bg-purple-500';
-      case 'academic': return 'bg-indigo-500';
+  const getEventDotColor = (evt: CalendarEvent) => {
+    let colorKey = evt.color;
+    if (!colorKey) {
+      if (evt.type === 'exam') {
+        const lower = (evt.title + ' ' + (evt.description || '')).toLowerCase();
+        if (lower.includes('final')) colorKey = 'red';
+        else if (lower.includes('midterm')) colorKey = 'rose';
+        else if (lower.includes('unit test')) colorKey = 'amber';
+        else if (lower.includes('quiz')) colorKey = 'purple';
+        else colorKey = 'rose';
+      } else if (evt.type === 'holiday') {
+        colorKey = 'emerald';
+      } else if (evt.type === 'event') {
+        colorKey = 'blue';
+      } else if (evt.type === 'meeting') {
+        colorKey = 'indigo';
+      } else if (evt.type === 'academic') {
+        colorKey = 'teal';
+      } else {
+        colorKey = 'slate';
+      }
+    }
+
+    switch (colorKey) {
+      case 'red': return 'bg-red-500';
+      case 'rose': return 'bg-rose-500';
+      case 'amber': return 'bg-amber-500';
+      case 'purple': return 'bg-purple-500';
+      case 'emerald': return 'bg-emerald-500';
+      case 'blue': return 'bg-blue-500';
+      case 'indigo': return 'bg-indigo-500';
+      case 'teal': return 'bg-teal-500';
       default: return 'bg-slate-500';
     }
   };
 
   // Today Date string for highlighting
-  const todayStr = '2026-07-26';
+  const realToday = new Date();
+  const todayStr = formatDateKey(realToday.getFullYear(), realToday.getMonth(), realToday.getDate());
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-[#0F172A] p-5 rounded-2xl text-white shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+    <div className="space-y-4">
+      {/* Toast Notification Bar for Auto Sync */}
+      {syncToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900/95 dark:bg-slate-800/95 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 text-xs font-semibold animate-in fade-in slide-in-from-bottom-3 duration-200">
+          <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>{syncToast}</span>
+          <button onClick={() => setSyncToast(null)} className="ml-2 text-slate-400 hover:text-white">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Header Banner - Compact */}
+      <div className="bg-[#0F172A] p-3.5 sm:p-4 rounded-2xl text-white shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-blue-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <CalendarIcon className="w-4 h-4 text-amber-400" /> Greenwood Shared Academic Calendar
+          <div className="flex items-center gap-2 text-blue-400 text-xs font-bold uppercase tracking-wider mb-0.5">
+            <CalendarIcon className="w-3.5 h-3.5 text-amber-400" /> Greenwood Academic Calendar
           </div>
-          <h2 className="text-xl font-bold tracking-tight">Exams, Holidays & School Events Schedule</h2>
-          <p className="text-xs text-slate-300 mt-0.5">
-            Centralized schedule sync for teachers, students, parents, and administrative staff.
+          <h2 className="text-base sm:text-lg font-bold tracking-tight">Schedule & Event Planner</h2>
+          <p className="text-[11px] text-slate-300">
+            Exams, holidays, classes, and academic events calendar synced with ExamManager.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Quick Stats Badges */}
-          <div className="hidden sm:flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-semibold">
+          <div className="hidden sm:flex items-center gap-2 bg-slate-800/80 px-2.5 py-1 rounded-xl border border-slate-700 text-[11px] font-semibold">
             <span className="flex items-center gap-1 text-amber-400">
-              <Award className="w-3.5 h-3.5" />
+              <Award className="w-3 h-3" />
               {events.filter(e => e.type === 'exam').length} Exams
             </span>
             <span className="text-slate-600">•</span>
             <span className="flex items-center gap-1 text-emerald-400">
-              <Sun className="w-3.5 h-3.5" />
+              <Sun className="w-3 h-3" />
               {events.filter(e => e.type === 'holiday').length} Holidays
             </span>
             <span className="text-slate-600">•</span>
             <span className="flex items-center gap-1 text-blue-400">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-3 h-3" />
               {events.filter(e => e.type === 'event').length} Events
             </span>
           </div>
+
+          <button
+            onClick={handleSyncExams}
+            disabled={isSyncing}
+            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+            title="Auto-import exam schedules from ExamManager"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>{isSyncing ? 'Syncing...' : 'Sync Exam Dates'}</span>
+          </button>
 
           {(user?.role === 'admin' || user?.role === 'teacher') && (
             <button
@@ -271,43 +466,60 @@ export const SchoolCalendar: React.FC = () => {
                 setSelectedDayForNewEvent(new Date().toISOString().slice(0, 10));
                 setIsAddModalOpen(true);
               }}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs"
             >
-              <Plus className="w-4 h-4" />
-              <span>Create Event / Exam</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create Event</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Control Bar: Date Selector, View Toggle, Category Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Date Month / Week Selector */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
             <button
               onClick={prevPeriod}
-              className="p-1.5 hover:bg-white text-slate-700 rounded-lg transition shadow-2xs"
-              title="Previous"
+              className="p-1 hover:bg-white text-slate-700 rounded-lg transition shadow-2xs"
+              title="Previous Month/Week"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={jumpToToday}
-              className="px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-white rounded-lg transition"
+              className="px-2.5 py-1 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-2xs flex items-center gap-1"
             >
-              Today
+              <CheckCircle2 className="w-3 h-3" />
+              <span>Today</span>
             </button>
             <button
               onClick={nextPeriod}
-              className="p-1.5 hover:bg-white text-slate-700 rounded-lg transition shadow-2xs"
-              title="Next"
+              className="p-1 hover:bg-white text-slate-700 rounded-lg transition shadow-2xs"
+              title="Next Month/Week"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <h3 className="text-base font-bold text-slate-900 min-w-[160px]">
+          <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
+            <span className="text-[10px] font-semibold text-slate-500">Go to:</span>
+            <input
+              type="date"
+              value={formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate())}
+              onChange={(e) => {
+                if (e.target.value) {
+                  const [y, m, d] = e.target.value.split('-').map(Number);
+                  setCurrentDate(new Date(y, m - 1, d));
+                }
+              }}
+              className="bg-transparent text-xs font-bold text-slate-800 outline-none font-mono cursor-pointer"
+              title="Select any custom date"
+            />
+          </div>
+
+          <h3 className="text-sm sm:text-base font-bold text-slate-900 min-w-[140px]">
             {viewMode === 'month' ? (
               `${monthNames[month]} ${year}`
             ) : (
@@ -317,30 +529,30 @@ export const SchoolCalendar: React.FC = () => {
         </div>
 
         {/* View Mode Toggle & Category Filters */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {/* View Mode Switcher */}
-          <div className="flex items-center p-1 bg-slate-100 rounded-xl">
+          <div className="flex items-center p-0.5 bg-slate-100 rounded-xl border border-slate-200/60">
             <button
               onClick={() => setViewMode('month')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${
+              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
                 viewMode === 'month'
                   ? 'bg-white text-slate-900 shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <CalendarDays className="w-3.5 h-3.5 text-blue-600" />
-              <span>Monthly Grid</span>
+              <span>Month</span>
             </button>
             <button
               onClick={() => setViewMode('week')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${
+              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
                 viewMode === 'week'
                   ? 'bg-white text-slate-900 shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <ListFilter className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Weekly View</span>
+              <span>Week</span>
             </button>
           </div>
 
@@ -348,7 +560,7 @@ export const SchoolCalendar: React.FC = () => {
           <select
             value={categoryFilter}
             onChange={e => setCategoryFilter(e.target.value)}
-            className="p-2 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-blue-500"
+            className="p-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-blue-500"
           >
             <option value="all">All Categories</option>
             <option value="exam">Exams & Tests</option>
@@ -359,51 +571,75 @@ export const SchoolCalendar: React.FC = () => {
           </select>
 
           {/* Search Bar */}
-          <div className="relative flex-1 sm:w-48">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+          <div className="relative flex-1 sm:w-40">
+            <Search className="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5" />
             <input
               type="text"
-              placeholder="Search schedule..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500"
+              className="w-full pl-7 pr-2 py-1 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500"
             />
           </div>
         </div>
       </div>
 
-      {/* Category Legend Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 px-1">
-        <div className="flex flex-wrap items-center gap-4 font-medium">
-          <span className="font-bold text-slate-800">Legend:</span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Exams & Tests
+      {/* Category Legend Bar with Exam Color Differentiation */}
+      <div className="bg-white dark:bg-slate-900 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs flex flex-wrap items-center justify-between gap-2.5 text-[11px] text-slate-600 dark:text-slate-400">
+        <div className="flex flex-wrap items-center gap-3 font-medium">
+          <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+            <Palette className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Color Legend:
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Holidays
+          {/* Exam Color Coding Badges */}
+          <div className="flex flex-wrap items-center gap-2 bg-amber-50/90 dark:bg-amber-950/40 px-2 py-0.5 rounded-lg border border-amber-200/80 dark:border-amber-900/50">
+            <span className="font-bold text-amber-900 dark:text-amber-300 text-[10px] uppercase tracking-wider">Exams:</span>
+            <span className="flex items-center gap-1" title="Final Exams">
+              <span className="w-2 h-2 rounded-full bg-red-500"></span> Final (Red)
+            </span>
+            <span className="flex items-center gap-1" title="Midterm Exams">
+              <span className="w-2 h-2 rounded-full bg-rose-500"></span> Midterm (Rose)
+            </span>
+            <span className="flex items-center gap-1" title="Unit Tests">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span> Unit Test (Amber)
+            </span>
+            <span className="flex items-center gap-1" title="Quizzes">
+              <span className="w-2 h-2 rounded-full bg-purple-500"></span> Quiz (Purple)
+            </span>
+          </div>
+
+          {/* School Holidays and General Events */}
+          <span className="flex items-center gap-1 font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-emerald-200/80 dark:border-emerald-900/50" title="School Holidays">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span> School Holidays (Mint Green)
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> School Events
+          <span className="flex items-center gap-1" title="School Events">
+            <span className="w-2 h-2 rounded-full bg-blue-500"></span> Events
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Parent Meetings
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Academic Deadlines
+          <span className="flex items-center gap-1" title="Parent Meetings">
+            <span className="w-2 h-2 rounded-full bg-indigo-500"></span> Meetings
           </span>
         </div>
 
-        <span className="text-[11px] text-slate-400 font-mono">
-          Showing {filteredEvents.length} scheduled items
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSyncExams}
+            disabled={isSyncing}
+            className="text-amber-700 dark:text-amber-400 hover:text-amber-900 hover:bg-amber-50 dark:hover:bg-amber-950/50 px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition text-[11px] cursor-pointer"
+          >
+            <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>Auto-Sync ExamManager</span>
+          </button>
+          <span className="text-[10px] text-slate-400 font-mono">
+            {filteredEvents.length} items
+          </span>
+        </div>
       </div>
 
       {/* ---------------- MONTHLY VIEW GRID ---------------- */}
       {viewMode === 'month' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-x-auto">
-          <div className="min-w-[640px]">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-x-auto">
+          <div className="min-w-[580px]">
             {/* Day Headers (Sun - Sat) */}
-            <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-xs font-bold text-slate-600 uppercase tracking-wider py-2.5">
+            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-center text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider py-1.5">
               <div>Sun</div>
               <div>Mon</div>
               <div>Tue</div>
@@ -413,15 +649,15 @@ export const SchoolCalendar: React.FC = () => {
               <div>Sat</div>
             </div>
 
-            {/* Calendar Cells */}
-            <div className="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-slate-100 bg-slate-100/40 min-h-[520px]">
+            {/* Calendar Cells - Compact Height */}
+            <div className="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-slate-100 dark:divide-slate-800 bg-slate-100/40 dark:bg-slate-950/40">
             {/* Blank cells for previous month */}
             {Array.from({ length: firstDayOfMonth }).map((_, idx) => {
               const dayNum = daysInPrevMonth - firstDayOfMonth + idx + 1;
               return (
                 <div
                   key={`prev-${idx}`}
-                  className="bg-slate-50/50 p-2 min-h-[110px] text-slate-300 text-xs font-medium"
+                  className="bg-slate-50/50 dark:bg-slate-900/30 p-1.5 min-h-[64px] sm:min-h-[72px] text-slate-300 dark:text-slate-700 text-xs font-medium"
                 >
                   <span>{dayNum}</span>
                 </div>
@@ -438,23 +674,29 @@ export const SchoolCalendar: React.FC = () => {
               return (
                 <div
                   key={`day-${dayNum}`}
-                  className={`p-1.5 sm:p-2 min-h-[115px] bg-white transition hover:bg-blue-50/20 relative group ${
-                    isToday ? 'bg-blue-50/40 ring-1 ring-blue-400 inset-0 z-10' : ''
+                  className={`p-1.5 min-h-[64px] sm:min-h-[72px] bg-white dark:bg-slate-900 transition hover:bg-blue-50/20 dark:hover:bg-blue-900/10 relative group ${
+                    isToday ? 'bg-blue-50/60 dark:bg-blue-950/30 ring-2 ring-blue-500/80 z-10' : ''
                   }`}
                 >
                   {/* Day Header */}
                   <div className="flex items-center justify-between mb-1">
                     <span
-                      className={`text-xs font-bold inline-flex items-center justify-center w-6 h-6 rounded-full ${
+                      className={`text-xs font-bold inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded-full ${
                         isToday
-                          ? 'bg-blue-600 text-white shadow-2xs'
-                          : 'text-slate-800'
+                          ? 'bg-blue-600 text-white shadow-2xs font-extrabold'
+                          : 'text-slate-800 dark:text-slate-200'
                       }`}
                     >
                       {dayNum}
                     </span>
 
-                    {(user?.role === 'admin' || user?.role === 'teacher') && (
+                    {isToday && (
+                      <span className="text-[9px] font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider bg-blue-100 dark:bg-blue-950 px-1 rounded">
+                        Today
+                      </span>
+                    )}
+
+                    {(user?.role === 'admin' || user?.role === 'teacher') && !isToday && (
                       <button
                         onClick={() => {
                           setSelectedDayForNewEvent(dateKey);
@@ -464,36 +706,35 @@ export const SchoolCalendar: React.FC = () => {
                         className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-600 p-0.5 rounded transition"
                         title="Add event on this date"
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-3 h-3" />
                       </button>
                     )}
                   </div>
 
                   {/* Day Events List */}
-                  <div className="space-y-1">
-                    {dayEvents.slice(0, 3).map(evt => (
+                  <div className="space-y-0.5">
+                    {dayEvents.slice(0, 2).map(evt => (
                       <div
                         key={evt.id}
                         onClick={() => setSelectedEvent(evt)}
-                        className={`p-1 rounded text-[11px] font-semibold border cursor-pointer truncate shadow-2xs transition flex items-center gap-1 ${getTypeBadgeStyle(
-                          evt.type
+                        className={`px-1 py-0.5 rounded text-[10px] font-semibold border cursor-pointer truncate shadow-2xs transition flex items-center gap-1 ${getEventBadgeStyle(
+                          evt
                         )}`}
                         title={`${evt.title} (${evt.startTime || 'All Day'})`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${getTypeDotColor(evt.type)}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${getEventDotColor(evt)}`} />
                         <span className="truncate">{evt.title}</span>
                       </div>
                     ))}
 
-                    {dayEvents.length > 3 && (
+                    {dayEvents.length > 2 && (
                       <button
                         onClick={() => {
-                          // Jump to week view or open details
-                          setSelectedEvent(dayEvents[3]);
+                          setSelectedEvent(dayEvents[2]);
                         }}
-                        className="w-full text-center text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded py-0.5 border border-blue-200 transition"
+                        className="w-full text-center text-[9px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded py-0.5 border border-blue-200 transition"
                       >
-                        +{dayEvents.length - 3} more items
+                        +{dayEvents.length - 2} more
                       </button>
                     )}
                   </div>
@@ -507,7 +748,7 @@ export const SchoolCalendar: React.FC = () => {
             }).map((_, idx) => (
               <div
                 key={`next-${idx}`}
-                className="bg-slate-50/50 p-2 min-h-[110px] text-slate-300 text-xs font-medium"
+                className="bg-slate-50/50 p-1.5 min-h-[64px] sm:min-h-[72px] text-slate-300 text-xs font-medium"
               >
                 <span>{idx + 1}</span>
               </div>
@@ -569,12 +810,12 @@ export const SchoolCalendar: React.FC = () => {
                       <div
                         key={evt.id}
                         onClick={() => setSelectedEvent(evt)}
-                        className={`p-2.5 rounded-xl border cursor-pointer hover:shadow-md transition space-y-1.5 ${getTypeBadgeStyle(
-                          evt.type
+                        className={`p-2.5 rounded-xl border cursor-pointer hover:shadow-md transition space-y-1.5 ${getEventBadgeStyle(
+                          evt
                         )}`}
                       >
                         <div className="flex items-center justify-between gap-1">
-                          <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 bg-white/70 rounded">
+                          <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 bg-white/70 dark:bg-slate-900/70 rounded">
                             {evt.type}
                           </span>
                           {evt.startTime && (
@@ -585,19 +826,19 @@ export const SchoolCalendar: React.FC = () => {
                           )}
                         </div>
 
-                        <h4 className="font-bold text-xs text-slate-900 leading-snug">
+                        <h4 className="font-bold text-xs text-slate-900 dark:text-slate-100 leading-snug">
                           {evt.title}
                         </h4>
 
                         {evt.className && (
-                          <p className="text-[10px] text-slate-700 font-medium flex items-center gap-1">
+                          <p className="text-[10px] text-slate-700 dark:text-slate-300 font-medium flex items-center gap-1">
                             <GraduationCap className="w-3 h-3 text-slate-500" />
                             {evt.className}
                           </p>
                         )}
 
                         {evt.location && (
-                          <p className="text-[10px] text-slate-600 flex items-center gap-1">
+                          <p className="text-[10px] text-slate-600 dark:text-slate-400 flex items-center gap-1">
                             <MapPin className="w-3 h-3 text-slate-400" />
                             {evt.location}
                           </p>
@@ -615,10 +856,10 @@ export const SchoolCalendar: React.FC = () => {
       {/* EVENT DETAIL MODAL */}
       {selectedEvent && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 border border-slate-200 shadow-2xl space-y-5">
-            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-5">
+            <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="space-y-1">
-                <span className={`inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border ${getTypeBadgeStyle(selectedEvent.type)}`}>
+                <span className={`inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border ${getEventBadgeStyle(selectedEvent)}`}>
                   {selectedEvent.type}
                 </span>
                 <h3 className="text-lg font-bold text-slate-900 leading-snug">
@@ -707,14 +948,14 @@ export const SchoolCalendar: React.FC = () => {
       {/* CREATE NEW EVENT MODAL */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 border border-slate-200 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <Plus className="w-4 h-4 text-blue-600" /> Schedule New Event / Exam
               </h3>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -722,24 +963,32 @@ export const SchoolCalendar: React.FC = () => {
 
             <form onSubmit={handleCreateEvent} className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Event Title *</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Event Title *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Physics Midterm Exam or Science Fair"
                   value={newEvent.title}
                   onChange={e => setNewEvent({ ...newEvent, title: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500 font-medium"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500 font-medium"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Event Category</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Event Category</label>
                   <select
                     value={newEvent.type}
-                    onChange={e => setNewEvent({ ...newEvent, type: e.target.value as any })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500 font-semibold"
+                    onChange={e => {
+                      const typeVal = e.target.value as any;
+                      let autoColor = 'blue';
+                      if (typeVal === 'exam') autoColor = 'rose';
+                      else if (typeVal === 'holiday') autoColor = 'emerald';
+                      else if (typeVal === 'meeting') autoColor = 'indigo';
+                      else if (typeVal === 'academic') autoColor = 'teal';
+                      setNewEvent({ ...newEvent, type: typeVal, color: autoColor });
+                    }}
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500 font-semibold"
                   >
                     <option value="exam">Exam / Test</option>
                     <option value="holiday">School Holiday</option>
@@ -750,11 +999,11 @@ export const SchoolCalendar: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Target Audience</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Target Audience</label>
                   <select
                     value={newEvent.targetRole}
                     onChange={e => setNewEvent({ ...newEvent, targetRole: e.target.value as any })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500"
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500"
                   >
                     <option value="all">Everyone (All)</option>
                     <option value="students">Students Only</option>
@@ -764,81 +1013,114 @@ export const SchoolCalendar: React.FC = () => {
                 </div>
               </div>
 
+              {/* Color Selector Palette */}
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+                  <Palette className="w-3.5 h-3.5 text-blue-600" /> Color Code Palette
+                </label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[
+                    { id: 'red', label: 'Final (Red)', bg: 'bg-red-500' },
+                    { id: 'rose', label: 'Midterm (Rose)', bg: 'bg-rose-500' },
+                    { id: 'amber', label: 'Unit Test (Amber)', bg: 'bg-amber-500' },
+                    { id: 'purple', label: 'Quiz (Purple)', bg: 'bg-purple-500' },
+                    { id: 'emerald', label: 'Holiday (Green)', bg: 'bg-emerald-500' },
+                    { id: 'blue', label: 'Event (Blue)', bg: 'bg-blue-500' },
+                    { id: 'indigo', label: 'Meeting (Indigo)', bg: 'bg-indigo-500' },
+                    { id: 'teal', label: 'Deadline (Teal)', bg: 'bg-teal-500' },
+                  ].map(item => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setNewEvent({ ...newEvent, color: item.id })}
+                      className={`px-2 py-1.5 rounded-xl border text-[10px] font-bold flex items-center gap-1 transition ${
+                        newEvent.color === item.id
+                          ? 'border-blue-600 ring-2 ring-blue-500/30 bg-blue-50 dark:bg-blue-950/50 text-blue-900 dark:text-blue-200'
+                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${item.bg}`} />
+                      <span className="truncate">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Date *</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Date *</label>
                   <input
                     type="date"
                     required
                     value={newEvent.date}
                     onChange={e => setNewEvent({ ...newEvent, date: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500 font-mono"
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500 font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Applicable Class</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Applicable Class</label>
                   <input
                     type="text"
                     placeholder="e.g. Class 10-A or All Classes"
                     value={newEvent.className}
                     onChange={e => setNewEvent({ ...newEvent, className: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500"
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Start Time</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Start Time</label>
                   <input
                     type="text"
                     placeholder="e.g. 09:00 AM"
                     value={newEvent.startTime}
                     onChange={e => setNewEvent({ ...newEvent, startTime: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500"
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">End Time</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">End Time</label>
                   <input
                     type="text"
                     placeholder="e.g. 11:30 AM"
                     value={newEvent.endTime}
                     onChange={e => setNewEvent({ ...newEvent, endTime: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500"
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Location / Venue</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Location / Venue</label>
                 <input
                   type="text"
                   placeholder="e.g. Auditorium / Room 101"
                   value={newEvent.location}
                   onChange={e => setNewEvent({ ...newEvent, location: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Description / Notes</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Description / Notes</label>
                 <textarea
                   rows={3}
                   placeholder="Additional context, agenda, or student instructions..."
                   value={newEvent.description}
                   onChange={e => setNewEvent({ ...newEvent, description: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition"
+                  className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-semibold rounded-xl transition"
                 >
                   Cancel
                 </button>

@@ -10,9 +10,13 @@ import {
   Sparkles,
   DollarSign,
   Heart,
-  MessageSquare
+  MessageSquare,
+  Bell,
+  Smartphone,
+  Mail,
+  CheckCircle2
 } from 'lucide-react';
-import { FeeRecord, Homework, ExamResult } from '../../types';
+import { FeeRecord, Homework, ExamResult, NotificationLog } from '../../types';
 
 interface Props {
   setActiveTab: (tab: string) => void;
@@ -23,18 +27,21 @@ export const ParentDashboard: React.FC<Props> = ({ setActiveTab }) => {
   const [fees, setFees] = useState<FeeRecord[]>([]);
   const [homework, setHomework] = useState<Homework[]>([]);
   const [results, setResults] = useState<ExamResult[]>([]);
+  const [notifications, setNotifications] = useState<NotificationLog[]>([]);
 
   useEffect(() => {
     const loadParentData = async () => {
       try {
-        const [feeList, hwList, resList] = await Promise.all([
+        const [feeList, hwList, resList, notifList] = await Promise.all([
           api.getFees('u-student1'),
           api.getHomework(),
-          api.getExamResults(undefined, 'u-student1')
+          api.getExamResults(undefined, 'u-student1'),
+          api.getNotificationLogs()
         ]);
         setFees(feeList);
         setHomework(hwList);
         setResults(resList);
+        setNotifications(notifList.slice(0, 5));
       } catch (e) {
         console.error(e);
       }
@@ -175,6 +182,55 @@ export const ParentDashboard: React.FC<Props> = ({ setActiveTab }) => {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Automated Parent Notifications & SMS/Email Alerts Card */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-amber-50 text-amber-600 rounded-lg border border-amber-100">
+              <Bell className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-900 text-sm">Automated SMS & Email Reminders Received</h3>
+              <p className="text-[11px] text-slate-500">Live feed of fee deadline alerts & exam schedule notifications sent to your registered mobile/email</p>
+            </div>
+          </div>
+          <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 font-bold text-[10px] border border-indigo-100 flex items-center gap-1">
+            <Smartphone className="w-3 h-3" />
+            <Mail className="w-3 h-3" />
+            <span>Active Sync</span>
+          </span>
+        </div>
+
+        <div className="space-y-3">
+          {notifications.length === 0 ? (
+            <p className="text-xs text-slate-400 py-3 text-center">No automated notification alerts sent yet.</p>
+          ) : (
+            notifications.map((notif) => (
+              <div key={notif.id} className="p-3.5 bg-slate-50 border border-slate-100 rounded-xl flex items-start justify-between gap-3 text-xs">
+                <div className="space-y-1 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900">{notif.title}</span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                      notif.type === 'fee_reminder' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                    }`}>
+                      {notif.type === 'fee_reminder' ? 'Fee Deadline Alert' : 'Exam Schedule Alert'}
+                    </span>
+                  </div>
+                  <p className="text-slate-600 text-[11px]">{notif.message}</p>
+                  <p className="text-[10px] text-slate-400">
+                    Channel: {notif.channel.replace('_', ' ')} • Sent on {new Date(notif.sentAt).toLocaleString()}
+                  </p>
+                </div>
+                <span className="px-2 py-1 bg-emerald-50 text-emerald-700 font-bold text-[10px] rounded-md border border-emerald-200 shrink-0 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                  <span>Delivered</span>
+                </span>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

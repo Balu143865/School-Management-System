@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Exam, ExamResult, ClassRoom } from '../../types';
 import { api } from '../../lib/api';
 import { Modal } from '../common/Modal';
-import { Award, Plus, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Award, Plus, Sparkles, CheckCircle2, Send, Bell } from 'lucide-react';
 
 export const ExamManager: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
@@ -34,6 +34,21 @@ export const ExamManager: React.FC = () => {
 
   const [aiCommentGenerating, setAiCommentGenerating] = useState(false);
   const [generatedComment, setGeneratedComment] = useState('');
+  const [notifSuccess, setNotifSuccess] = useState<string | null>(null);
+
+  const handleNotifyParents = async (examId: string, examTitle: string) => {
+    try {
+      const res = await api.triggerExamReminders({
+        channel: 'SMS_AND_EMAIL',
+        triggeredBy: 'Teacher Exam Manager Trigger',
+        examId
+      });
+      setNotifSuccess(`Dispatched SMS & Email exam schedule alerts for ${examTitle} to parents!`);
+      setTimeout(() => setNotifSuccess(null), 4000);
+    } catch (e) {
+      alert('Failed to send exam schedule notification');
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -133,6 +148,18 @@ export const ExamManager: React.FC = () => {
         </div>
       </div>
 
+      {notifSuccess && (
+        <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-2xl text-indigo-900 text-xs flex items-center justify-between shadow-xs animate-fadeIn">
+          <div className="flex items-center gap-2">
+            <Bell className="w-4 h-4 text-indigo-600 shrink-0" />
+            <span className="font-semibold">{notifSuccess}</span>
+          </div>
+          <button onClick={() => setNotifSuccess(null)} className="text-indigo-700 font-bold text-xs hover:underline">
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Exam Schedule */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
@@ -155,6 +182,15 @@ export const ExamManager: React.FC = () => {
                 <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-200/60">
                   <span>Date: {ex.date}</span>
                   <span>Max Marks: {ex.totalMarks}</span>
+                </div>
+                <div className="pt-2 flex justify-end">
+                  <button
+                    onClick={() => handleNotifyParents(ex.id, ex.title)}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-semibold rounded-lg border border-indigo-200 transition"
+                  >
+                    <Send className="w-3 h-3 text-indigo-600" />
+                    <span>Notify Parents (SMS/Email)</span>
+                  </button>
                 </div>
               </div>
             ))}

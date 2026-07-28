@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { Header } from './components/common/Header';
 import { Sidebar } from './components/common/Sidebar';
+import { MobileBottomNav } from './components/common/MobileBottomNav';
 
 // Admin Views
 import { AdminDashboard } from './components/admin/AdminDashboard';
@@ -38,12 +39,15 @@ import { SchoolCalendar } from './components/common/SchoolCalendar';
 import { AdminAuditLog } from './components/admin/AdminAuditLog';
 import { OfflineBanner } from './components/common/OfflineBanner';
 import { PerformanceOverview } from './components/common/PerformanceOverview';
+import { LibraryManager } from './components/library/LibraryManager';
+import { KeyboardShortcutManager } from './components/common/KeyboardShortcutManager';
 
 function MainAppContent() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isRegisterSchoolOpen, setIsRegisterSchoolOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -129,13 +133,16 @@ function MainAppContent() {
       case 'performance':
         return <PerformanceOverview />;
 
+      case 'library':
+        return <LibraryManager />;
+
       default:
         return <AdminDashboard setActiveTab={setActiveTab} onOpenRegisterSchool={() => setIsRegisterSchoolOpen(true)} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] flex flex-col font-sans text-slate-800 selection:bg-blue-600 selection:text-white overflow-x-hidden">
+    <div className="fixed inset-0 h-full w-full bg-[#F1F5F9] flex flex-col font-sans text-slate-800 selection:bg-blue-600 selection:text-white overflow-hidden">
       <OfflineBanner />
       <Header
         activeTab={activeTab}
@@ -143,9 +150,18 @@ function MainAppContent() {
         onOpenSchoolRegister={() => setIsRegisterSchoolOpen(true)}
         isMobileMenuOpen={isMobileMenuOpen}
         onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        onOpenShortcuts={() => setIsShortcutsOpen(true)}
       />
 
-      <div className="flex flex-1 overflow-hidden relative">
+      <KeyboardShortcutManager
+        activeTab={activeTab}
+        onNavigate={handleTabChange}
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+        onOpen={() => setIsShortcutsOpen(true)}
+      />
+
+      <div className="flex flex-1 overflow-hidden relative min-h-0 w-full">
         <Sidebar
           activeTab={activeTab}
           setActiveTab={handleTabChange}
@@ -153,10 +169,17 @@ function MainAppContent() {
           onCloseMobile={() => setIsMobileMenuOpen(false)}
         />
 
-        <main className="flex-1 p-3.5 sm:p-6 overflow-y-auto w-full max-w-full min-w-0 space-y-6">
+        <main className="flex-1 p-3.5 sm:p-6 pb-16 lg:pb-6 overflow-y-auto overflow-x-hidden w-full max-w-full min-w-0 space-y-6">
           {renderContent()}
         </main>
       </div>
+
+      <MobileBottomNav
+        activeTab={activeTab}
+        setActiveTab={handleTabChange}
+        isMobileMenuOpen={isMobileMenuOpen}
+        onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+      />
 
       <SchoolRegistrationModal
         isOpen={isRegisterSchoolOpen}

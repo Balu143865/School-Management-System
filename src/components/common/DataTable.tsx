@@ -130,7 +130,7 @@ export function DataTable<T extends Record<string, any>>({
           <tbody className="divide-y divide-slate-100">
             {paginatedData.length > 0 ? (
               paginatedData.map((item, rowIdx) => (
-                <tr key={rowIdx} className="hover:bg-slate-50/80 transition">
+                <tr key={rowIdx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/80 transition">
                   {columns.map((col, colIdx) => (
                     <td key={colIdx} className={`p-3.5 align-middle ${col.className || ''}`}>
                       {typeof col.accessor === 'function'

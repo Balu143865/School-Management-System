@@ -4,6 +4,7 @@ import {
   Users,
   GraduationCap,
   BookOpen,
+  BookMarked,
   CalendarCheck,
   CreditCard,
   FileText,
@@ -45,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'teacher':
         return [
           { id: 'dashboard', label: t('nav.dashboard', 'Teacher Dashboard'), icon: LayoutDashboard },
+          { id: 'library', label: t('nav.library', 'Library Catalog'), icon: BookMarked, badge: 'Books' },
           { id: 'performance', label: t('nav.performance', 'Performance Overview'), icon: TrendingUp, badge: 'D3' },
           { id: 'calendar', label: t('nav.calendar', 'School Calendar'), icon: Calendar, badge: 'Events' },
           { id: 'attendance', label: t('nav.attendance', 'Manage Attendance'), icon: CalendarCheck, badge: 'Daily' },
@@ -60,6 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'student':
         return [
           { id: 'dashboard', label: t('nav.dashboard', 'Student Dashboard'), icon: LayoutDashboard },
+          { id: 'library', label: t('nav.library', 'School Library'), icon: BookMarked },
           { id: 'calendar', label: t('nav.calendar', 'School Calendar'), icon: Calendar },
           { id: 'attendance', label: t('nav.attendance', 'Attendance Tracking'), icon: CalendarCheck },
           { id: 'homework', label: t('nav.homework', 'My Homework'), icon: FileText, badge: '2 Due' },
@@ -74,6 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'parent':
         return [
           { id: 'dashboard', label: t('nav.dashboard', 'Parent Dashboard'), icon: LayoutDashboard },
+          { id: 'library', label: t('nav.library', 'Library & Books'), icon: BookMarked },
           { id: 'calendar', label: t('nav.calendar', 'School Calendar'), icon: Calendar },
           { id: 'attendance', label: t('nav.attendance', 'Child Attendance'), icon: CalendarCheck },
           { id: 'exams', label: t('nav.exams', 'Report Cards & Results'), icon: Award },
@@ -87,6 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       default:
         return [
           { id: 'dashboard', label: t('nav.dashboard', 'Overview Dashboard'), icon: LayoutDashboard },
+          { id: 'library', label: t('nav.library', 'Library Management'), icon: BookMarked, badge: 'New' },
           { id: 'performance', label: t('nav.performance', 'Performance Overview'), icon: TrendingUp, badge: 'D3' },
           { id: 'calendar', label: t('nav.calendar', 'School Calendar'), icon: Calendar, badge: 'Shared' },
           { id: 'students', label: t('nav.students', 'Student Directory'), icon: GraduationCap },
@@ -155,11 +160,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+          const shortcutMap: Record<string, string> = {
+            dashboard: 'Alt+D',
+            calendar: 'Alt+C',
+            students: 'Alt+S',
+            teachers: 'Alt+T',
+            library: 'Alt+L',
+            notices: 'Alt+N',
+            attendance: 'Alt+A',
+            homework: 'Alt+H',
+            chat: 'Alt+M',
+            'ai-assistant': 'Alt+I',
+            reports: 'Alt+R',
+            performance: 'Alt+P',
+          };
+          const shortcutKey = shortcutMap[item.id];
+
           return (
             <button
               key={item.id}
               onClick={() => handleTabClick(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-colors ${
+              className={`w-full group flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-colors ${
                 isActive
                   ? 'bg-blue-600 text-white font-semibold shadow-xs'
                   : item.highlight
@@ -175,11 +196,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 />
                 <span className="truncate">{item.label}</span>
               </div>
-              {item.badge && (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  {item.badge}
-                </span>
-              )}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {item.badge && (
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    {item.badge}
+                  </span>
+                )}
+                {shortcutKey && (
+                  <span
+                    className={`hidden group-hover:inline-block px-1 py-0.2 rounded text-[9px] font-mono font-medium ${
+                      isActive
+                        ? 'bg-blue-700/80 text-blue-100 border border-blue-400/40'
+                        : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    }`}
+                  >
+                    {shortcutKey}
+                  </span>
+                )}
+              </div>
             </button>
           );
         })}
@@ -205,7 +239,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden lg:flex w-60 bg-[#0F172A] text-white flex-col shrink-0 min-h-[calc(100vh-3.5rem)] border-r border-slate-800">
+      <aside className="hidden lg:flex w-60 bg-[#0F172A] text-white flex-col shrink-0 h-full overflow-hidden border-r border-slate-800">
         {renderContent()}
       </aside>
 

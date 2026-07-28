@@ -10,9 +10,11 @@ import {
   Sparkles,
   BookOpen,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  QrCode
 } from 'lucide-react';
 import { Homework, FeeRecord, ExamResult } from '../../types';
+import { DigitalStudentIdModal } from '../common/DigitalStudentIdModal';
 
 interface Props {
   setActiveTab: (tab: string) => void;
@@ -24,6 +26,7 @@ export const StudentDashboard: React.FC<Props> = ({ setActiveTab }) => {
   const [fees, setFees] = useState<FeeRecord[]>([]);
   const [results, setResults] = useState<ExamResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDigitalIdOpen, setIsDigitalIdOpen] = useState(false);
 
   useEffect(() => {
     const loadStudentData = async () => {
@@ -62,13 +65,31 @@ export const StudentDashboard: React.FC<Props> = ({ setActiveTab }) => {
             Class: <span className="font-semibold text-white">{user?.className || 'Class 10-A'}</span> • Roll No: {user?.rollNo || '101'}
           </p>
         </div>
-        <button
-          onClick={() => setActiveTab('ai-assistant')}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl text-xs transition shadow-md shrink-0"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>Ask AI Tutor</span>
-        </button>
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <button
+            onClick={() => setIsDigitalIdOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold rounded-xl text-xs transition shadow-md"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>Digital ID Card</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('attendance')}
+            className="flex items-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-xs transition shadow-md"
+          >
+            <CalendarCheck className="w-4 h-4" />
+            <span>Scan Attendance</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ai-assistant')}
+            className="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl text-xs transition shadow-md"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Ask AI Tutor</span>
+          </button>
+        </div>
       </div>
 
       {/* Metrics */}
@@ -156,6 +177,13 @@ export const StudentDashboard: React.FC<Props> = ({ setActiveTab }) => {
           </button>
         </div>
       </div>
+
+      {/* Digital Student ID Modal */}
+      <DigitalStudentIdModal
+        isOpen={isDigitalIdOpen}
+        onClose={() => setIsDigitalIdOpen(false)}
+        student={user}
+      />
     </div>
   );
 };

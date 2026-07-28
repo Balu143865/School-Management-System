@@ -96,16 +96,16 @@ export const AdminDashboard: React.FC<Props> = ({ setActiveTab, onOpenRegisterSc
             <div className="flex gap-2">
               <button
                 onClick={() => setActiveTab('reports')}
-                className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded flex items-center gap-1 transition"
+                className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded-lg flex items-center gap-1 transition"
               >
-                <FileSpreadsheet className="w-3 h-3 text-emerald-600" />
+                <FileSpreadsheet className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                 <span>CSV</span>
               </button>
               <button
                 onClick={() => window.print()}
-                className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded flex items-center gap-1 transition"
+                className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded-lg flex items-center gap-1 transition"
               >
-                <Printer className="w-3 h-3 text-slate-600" />
+                <Printer className="w-3 h-3 text-slate-600 dark:text-slate-400" />
                 <span>Print</span>
               </button>
             </div>
@@ -113,8 +113,8 @@ export const AdminDashboard: React.FC<Props> = ({ setActiveTab, onOpenRegisterSc
 
           <div className="flex-1 overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-slate-50 text-slate-500">
-                <tr className="border-b border-slate-100 text-[11px] uppercase tracking-wider">
+              <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400">
+                <tr className="border-b border-slate-100 dark:border-slate-800 text-[11px] uppercase tracking-wider">
                   <th className="p-3 font-semibold">Student Name</th>
                   <th className="p-3 font-semibold">ID</th>
                   <th className="p-3 font-semibold">Class</th>
@@ -123,63 +123,63 @@ export const AdminDashboard: React.FC<Props> = ({ setActiveTab, onOpenRegisterSc
                   <th className="p-3 font-semibold">Fee Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="p-3 font-medium text-slate-900">Alexandria Rivers</td>
-                  <td className="p-3 text-slate-500 font-mono text-[11px]">STU-2026-001</td>
-                  <td className="p-3 text-slate-700">12A (Sci)</td>
-                  <td className="p-3 font-mono font-semibold text-emerald-600">98%</td>
-                  <td className="p-3 font-semibold text-slate-900">3.92</td>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors">
+                  <td className="p-3 font-medium text-slate-900 dark:text-slate-100">Alexandria Rivers</td>
+                  <td className="p-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">STU-2026-001</td>
+                  <td className="p-3 text-slate-700 dark:text-slate-300">12A (Sci)</td>
+                  <td className="p-3 font-mono font-semibold text-emerald-600 dark:text-emerald-400">98%</td>
+                  <td className="p-3 font-semibold text-slate-900 dark:text-slate-100">3.92</td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold uppercase">
+                    <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-full text-[10px] font-bold uppercase">
                       Paid
                     </span>
                   </td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="p-3 font-medium text-slate-900">Julian Vancer</td>
-                  <td className="p-3 text-slate-500 font-mono text-[11px]">STU-2026-042</td>
-                  <td className="p-3 text-slate-700">10B (Comm)</td>
-                  <td className="p-3 font-mono font-semibold text-amber-600">82%</td>
-                  <td className="p-3 font-semibold text-rose-500">2.45</td>
+                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors">
+                  <td className="p-3 font-medium text-slate-900 dark:text-slate-100">Julian Vancer</td>
+                  <td className="p-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">STU-2026-042</td>
+                  <td className="p-3 text-slate-700 dark:text-slate-300">10B (Comm)</td>
+                  <td className="p-3 font-mono font-semibold text-amber-600 dark:text-amber-400">82%</td>
+                  <td className="p-3 font-semibold text-rose-500 dark:text-rose-400">2.45</td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold uppercase">
+                    <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 rounded-full text-[10px] font-bold uppercase">
                       Partial
                     </span>
                   </td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="p-3 font-medium text-slate-900">Sarah McKellan</td>
-                  <td className="p-3 text-slate-500 font-mono text-[11px]">STU-2026-118</td>
-                  <td className="p-3 text-slate-700">11C (Arts)</td>
-                  <td className="p-3 font-mono font-semibold text-emerald-600">100%</td>
-                  <td className="p-3 font-semibold text-slate-900">4.00</td>
+                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors">
+                  <td className="p-3 font-medium text-slate-900 dark:text-slate-100">Sarah McKellan</td>
+                  <td className="p-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">STU-2026-118</td>
+                  <td className="p-3 text-slate-700 dark:text-slate-300">11C (Arts)</td>
+                  <td className="p-3 font-mono font-semibold text-emerald-600 dark:text-emerald-400">100%</td>
+                  <td className="p-3 font-semibold text-slate-900 dark:text-slate-100">4.00</td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold uppercase">
+                    <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-full text-[10px] font-bold uppercase">
                       Paid
                     </span>
                   </td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="p-3 font-medium text-slate-900">Marcus Thorne</td>
-                  <td className="p-3 text-slate-500 font-mono text-[11px]">STU-2026-089</td>
-                  <td className="p-3 text-slate-700">09A (Gen)</td>
-                  <td className="p-3 font-mono font-semibold text-emerald-600">91%</td>
-                  <td className="p-3 font-semibold text-slate-900">3.10</td>
+                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors">
+                  <td className="p-3 font-medium text-slate-900 dark:text-slate-100">Marcus Thorne</td>
+                  <td className="p-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">STU-2026-089</td>
+                  <td className="p-3 text-slate-700 dark:text-slate-300">09A (Gen)</td>
+                  <td className="p-3 font-mono font-semibold text-emerald-600 dark:text-emerald-400">91%</td>
+                  <td className="p-3 font-semibold text-slate-900 dark:text-slate-100">3.10</td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full text-[10px] font-bold uppercase">
+                    <span className="px-2 py-0.5 bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 rounded-full text-[10px] font-bold uppercase">
                       Overdue
                     </span>
                   </td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="p-3 font-medium text-slate-900">Elena Petrova</td>
-                  <td className="p-3 text-slate-500 font-mono text-[11px]">STU-2026-205</td>
-                  <td className="p-3 text-slate-700">12B (Sci)</td>
-                  <td className="p-3 font-mono font-semibold text-emerald-600">94%</td>
-                  <td className="p-3 font-semibold text-slate-900">3.78</td>
+                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors">
+                  <td className="p-3 font-medium text-slate-900 dark:text-slate-100">Elena Petrova</td>
+                  <td className="p-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">STU-2026-205</td>
+                  <td className="p-3 text-slate-700 dark:text-slate-300">12B (Sci)</td>
+                  <td className="p-3 font-mono font-semibold text-emerald-600 dark:text-emerald-400">94%</td>
+                  <td className="p-3 font-semibold text-slate-900 dark:text-slate-100">3.78</td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold uppercase">
+                    <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-full text-[10px] font-bold uppercase">
                       Paid
                     </span>
                   </td>

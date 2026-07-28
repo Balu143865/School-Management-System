@@ -15,7 +15,10 @@ import {
   ChatMessage,
   CalendarEvent,
   AuditLogEntry,
-  DashboardStats
+  DashboardStats,
+  NotificationLog,
+  Book,
+  BookBorrowing
 } from '../types';
 import { offlineStorage } from './offlineStorage';
 
@@ -481,5 +484,115 @@ export const api = {
       body: JSON.stringify({ eventName, targetDate, budget })
     });
     return handleResponse<{ plan: string }>(res);
+  },
+
+  // Notification Service Triggers
+  async getNotificationLogs() {
+    return fetchWithCache<NotificationLog[]>('notifications_logs', async () => {
+      const res = await fetch('/api/notifications', { headers: getAuthHeader() });
+      return handleResponse<NotificationLog[]>(res);
+    });
+  },
+
+  async triggerFeeReminders(data?: { channel?: string; triggeredBy?: string; feeId?: string; studentId?: string }) {
+    const res = await fetch('/api/notifications/trigger-fee-reminders', {
+      method: 'POST',
+      headers: getAuthHeader(),
+      body: JSON.stringify(data || {})
+    });
+    return handleResponse<{ success: boolean; count: number; logs: NotificationLog[] }>(res);
+  },
+
+  async triggerExamReminders(data?: { channel?: string; triggeredBy?: string; examId?: string; classId?: string }) {
+    const res = await fetch('/api/notifications/trigger-exam-reminders', {
+      method: 'POST',
+      headers: getAuthHeader(),
+      body: JSON.stringify(data || {})
+    });
+    return handleResponse<{ success: boolean; count: number; logs: NotificationLog[] }>(res);
+  },
+
+  async sendCustomNotification(log: Partial<NotificationLog>) {
+    const res = await fetch('/api/notifications/send-custom', {
+      method: 'POST',
+      headers: getAuthHeader(),
+      body: JSON.stringify(log)
+    });
+    return handleResponse<NotificationLog>(res);
+  },
+
+  async clearNotificationLogs() {
+    const res = await fetch('/api/notifications', {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return handleResponse<{ success: boolean }>(res);
+  },
+
+  // Library Management
+  async getBooks() {
+    return fetchWithCache<Book[]>('library_books', async () => {
+      const res = await fetch('/api/library/books', { headers: getAuthHeader() });
+      return handleResponse<Book[]>(res);
+    });
+  },
+
+  async addBook(book: Omit<Book, 'id'>) {
+    const res = await fetch('/api/library/books', {
+      method: 'POST',
+      headers: getAuthHeader(),
+      body: JSON.stringify(book)
+    });
+    return handleResponse<Book>(res);
+  },
+
+  async updateBook(id: string, updates: Partial<Book>) {
+    const res = await fetch(`/api/library/books/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeader(),
+      body: JSON.stringify(updates)
+    });
+    return handleResponse<Book>(res);
+  },
+
+  async deleteBook(id: string) {
+    const res = await fetch(`/api/library/books/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return handleResponse<{ success: boolean }>(res);
+  },
+
+  async getBorrowings() {
+    return fetchWithCache<BookBorrowing[]>('library_borrowings', async () => {
+      const res = await fetch('/api/library/borrowings', { headers: getAuthHeader() });
+      return handleResponse<BookBorrowing[]>(res);
+    });
+  },
+
+  async checkoutBook(data: {
+    bookId: string;
+    studentId: string;
+    studentName: string;
+    studentClass: string;
+    dueDate: string;
+    issuedBy?: string;
+  }) {
+    const res = await fetch('/api/library/checkout', {
+      method: 'POST',
+      headers: getAuthHeader(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse<BookBorrowing>(res);
+  },
+
+  async returnBook(borrowingId: string) {
+    const res = await fetch('/api/library/return', {
+      method: 'POST',
+      headers: getAuthHeader(),
+      body: JSON.stringify({ borrowingId })
+    });
+    return handleResponse<BookBorrowing>(res);
   }
 };
+

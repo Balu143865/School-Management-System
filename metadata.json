@@ -1,6 +1,6 @@
 {
   "name": "School Management System",
   "description": "Production-ready MERN School Management System featuring Admin, Teacher, Student, and Parent portals with Attendance, Fee Collection, Homework, Exams, Timetable, Real-time Chat, and Gemini AI Assistant.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

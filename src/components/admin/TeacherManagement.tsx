@@ -3,7 +3,14 @@ import { User, ClassRoom } from '../../types';
 import { api } from '../../lib/api';
 import { DataTable, Column } from '../common/DataTable';
 import { Modal } from '../common/Modal';
-import { UserCheck, Trash2 } from 'lucide-react';
+import { UserCheck, Trash2, Upload, Image as ImageIcon, X } from 'lucide-react';
+
+const PRESET_AVATARS = [
+  'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80',
+  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80',
+  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80'
+];
 
 export const TeacherManagement: React.FC = () => {
   const [teachers, setTeachers] = useState<User[]>([]);
@@ -16,7 +23,8 @@ export const TeacherManagement: React.FC = () => {
     email: '',
     phone: '',
     subject: 'Mathematics',
-    classId: ''
+    classId: '',
+    avatar: ''
   });
 
   const loadData = async () => {
@@ -39,6 +47,17 @@ export const TeacherManagement: React.FC = () => {
     loadData();
   }, []);
 
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, avatar: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleCreateTeacher = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -49,11 +68,11 @@ export const TeacherManagement: React.FC = () => {
         ...formData,
         role: 'teacher',
         className: classNameStr,
-        avatar: `https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80`
+        avatar: formData.avatar || PRESET_AVATARS[0]
       });
 
       setIsModalOpen(false);
-      setFormData({ name: '', email: '', phone: '', subject: 'Mathematics', classId: '' });
+      setFormData({ name: '', email: '', phone: '', subject: 'Mathematics', classId: '', avatar: '' });
       await loadData();
     } catch (err) {
       console.error('Failed to add teacher:', err);
@@ -121,6 +140,76 @@ export const TeacherManagement: React.FC = () => {
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Faculty Member">
         <form onSubmit={handleCreateTeacher} className="space-y-4 text-xs">
+          {/* Profile Photo / Image Upload Section */}
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
+            <label className="block font-semibold text-slate-800 flex items-center gap-1.5">
+              <ImageIcon className="w-4 h-4 text-indigo-600" /> Faculty Profile Photo / Avatar
+            </label>
+
+            <div className="flex items-center gap-4">
+              <div className="relative shrink-0">
+                <img
+                  src={formData.avatar || PRESET_AVATARS[0]}
+                  alt="Faculty Preview"
+                  className="w-14 h-14 rounded-full object-cover border-2 border-indigo-500/30 shadow-xs"
+                />
+                {formData.avatar && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, avatar: '' }))}
+                    className="absolute -top-1 -right-1 bg-slate-800 text-white rounded-full p-0.5 hover:bg-rose-600 transition"
+                    title="Remove Photo"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition shadow-xs">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-[10px] text-slate-400">JPG, PNG, WebP</span>
+                </div>
+
+                <input
+                  type="url"
+                  placeholder="Or paste image URL (https://...)"
+                  value={formData.avatar}
+                  onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
+                  className="w-full p-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 text-[11px]"
+                />
+              </div>
+            </div>
+
+            {/* Quick Sample Presets */}
+            <div>
+              <div className="text-[10px] font-semibold text-slate-500 mb-1">Quick Select Presets:</div>
+              <div className="flex items-center gap-2">
+                {PRESET_AVATARS.map((url, idx) => (
+                  <button
+                    type="button"
+                    key={idx}
+                    onClick={() => setFormData((prev) => ({ ...prev, avatar: url }))}
+                    className={`w-9 h-9 rounded-full overflow-hidden border-2 transition ${
+                      formData.avatar === url ? 'border-indigo-600 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-indigo-400'
+                    }`}
+                  >
+                    <img src={url} alt={`Preset ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="block font-medium text-slate-700 mb-1">Full Name *</label>
             <input

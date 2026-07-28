@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FeeRecord } from '../../types';
 import { api } from '../../lib/api';
 import { Modal } from '../common/Modal';
-import { CreditCard, CheckCircle2, Download, DollarSign } from 'lucide-react';
+import { CreditCard, CheckCircle2, Download, DollarSign, Bell, Send } from 'lucide-react';
 
 export const StudentFeePayment: React.FC = () => {
   const [fees, setFees] = useState<FeeRecord[]>([]);
@@ -24,6 +24,22 @@ export const StudentFeePayment: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  const [reminderSuccess, setReminderSuccess] = useState<string | null>(null);
+
+  const handleSendReminder = async (feeId: string, feeTitle: string) => {
+    try {
+      const res = await api.triggerFeeReminders({
+        channel: 'SMS_AND_EMAIL',
+        triggeredBy: 'Fee Portal Direct Trigger',
+        feeId
+      });
+      setReminderSuccess(`Automated SMS and Email reminder sent to parent for ${feeTitle}!`);
+      setTimeout(() => setReminderSuccess(null), 4000);
+    } catch (err) {
+      alert('Failed to send reminder notification');
+    }
+  };
 
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +72,18 @@ export const StudentFeePayment: React.FC = () => {
           <p className="text-xs text-slate-500">Pay tuition, lab fees, and examination dues with instant receipt issuance.</p>
         </div>
       </div>
+
+      {reminderSuccess && (
+        <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs flex items-center justify-between shadow-xs animate-fadeIn">
+          <div className="flex items-center gap-2">
+            <Bell className="w-4 h-4 text-amber-600 shrink-0" />
+            <span className="font-semibold">{reminderSuccess}</span>
+          </div>
+          <button onClick={() => setReminderSuccess(null)} className="text-amber-700 font-bold text-xs hover:underline">
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {successReceipt && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 text-xs flex items-center justify-between">
@@ -118,16 +146,27 @@ export const StudentFeePayment: React.FC = () => {
                     <span>Receipt</span>
                   </button>
                 ) : (
-                  <button
-                    onClick={() => {
-                      setSelectedFee(fee);
-                      setIsModalOpen(true);
-                    }}
-                    className="flex items-center gap-1 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition"
-                  >
-                    <DollarSign className="w-3.5 h-3.5" />
-                    <span>Pay Online</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleSendReminder(fee.id, fee.title)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold rounded-lg text-[11px] border border-amber-200 transition"
+                      title="Trigger SMS and Email reminder to parent"
+                    >
+                      <Bell className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Remind Parent</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedFee(fee);
+                        setIsModalOpen(true);
+                      }}
+                      className="flex items-center gap-1 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition"
+                    >
+                      <DollarSign className="w-3.5 h-3.5" />
+                      <span>Pay Online</span>
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

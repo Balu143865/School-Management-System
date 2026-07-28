@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { User, ClassRoom, AttendanceRecord } from '../../types';
-import { CalendarCheck, CheckCircle2, XCircle, Clock, AlertCircle, Save } from 'lucide-react';
+import { CalendarCheck, CheckCircle2, XCircle, Clock, AlertCircle, Save, QrCode } from 'lucide-react';
+import { QRAttendanceModal } from '../common/QRAttendanceModal';
 
 export const AttendanceManager: React.FC = () => {
   const [classes, setClasses] = useState<ClassRoom[]>([]);
@@ -15,6 +16,7 @@ export const AttendanceManager: React.FC = () => {
   >({});
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
   const loadAttendanceData = async () => {
     try {
@@ -87,14 +89,24 @@ export const AttendanceManager: React.FC = () => {
           <p className="text-xs text-slate-500">Record daily attendance, bulk mark status, and review attendance logs.</p>
         </div>
 
-        <button
-          onClick={handleSaveAttendance}
-          disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition shadow-xs"
-        >
-          <Save className="w-4 h-4" />
-          <span>{saving ? 'Saving...' : 'Save Attendance Log'}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsQRModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-xs transition shadow-xs"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>Live QR Attendance</span>
+          </button>
+
+          <button
+            onClick={handleSaveAttendance}
+            disabled={saving}
+            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition shadow-xs"
+          >
+            <Save className="w-4 h-4" />
+            <span>{saving ? 'Saving...' : 'Save Attendance Log'}</span>
+          </button>
+        </div>
       </div>
 
       {savedSuccess && (
@@ -214,6 +226,16 @@ export const AttendanceManager: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* QR Code Attendance Modal */}
+      <QRAttendanceModal
+        isOpen={isQRModalOpen}
+        onClose={() => setIsQRModalOpen(false)}
+        selectedClass={classes.find((c) => c.id === selectedClassId)}
+        selectedDate={selectedDate}
+        students={students}
+        onAttendanceUpdated={loadAttendanceData}
+      />
     </div>
   );
 };

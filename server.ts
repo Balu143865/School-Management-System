@@ -351,7 +351,77 @@ app.delete('/api/audit-logs', (req, res) => {
   res.json({ success: true });
 });
 
+// 17. Notification Service Triggers & Dispatch Engine
+app.get('/api/notifications', (req, res) => {
+  res.json(db.getNotificationLogs());
+});
+
+app.post('/api/notifications/trigger-fee-reminders', (req, res) => {
+  const { channel, triggeredBy, feeId, studentId } = req.body;
+  const result = db.triggerFeeReminders({ channel, triggeredBy, feeId, studentId });
+  res.json({ success: true, count: result.count, logs: result.logs });
+});
+
+app.post('/api/notifications/trigger-exam-reminders', (req, res) => {
+  const { channel, triggeredBy, examId, classId } = req.body;
+  const result = db.triggerExamReminders({ channel, triggeredBy, examId, classId });
+  res.json({ success: true, count: result.count, logs: result.logs });
+});
+
+app.post('/api/notifications/send-custom', (req, res) => {
+  const log = db.addNotificationLog(req.body);
+  res.status(201).json(log);
+});
+
+app.delete('/api/notifications', (req, res) => {
+  db.clearNotificationLogs();
+  res.json({ success: true });
+});
+
+// 18. Library Management Endpoints
+app.get('/api/library/books', (req, res) => {
+  res.json(db.getBooks());
+});
+
+app.post('/api/library/books', (req, res) => {
+  const newBook = db.addBook(req.body);
+  res.status(201).json(newBook);
+});
+
+app.put('/api/library/books/:id', (req, res) => {
+  const updated = db.updateBook(req.params.id, req.body);
+  if (!updated) return res.status(404).json({ error: 'Book not found' });
+  res.json(updated);
+});
+
+app.delete('/api/library/books/:id', (req, res) => {
+  const success = db.deleteBook(req.params.id);
+  res.json({ success });
+});
+
+app.get('/api/library/borrowings', (req, res) => {
+  res.json(db.getBorrowings());
+});
+
+app.post('/api/library/checkout', (req, res) => {
+  const result = db.checkoutBook(req.body);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  res.status(201).json(result);
+});
+
+app.post('/api/library/return', (req, res) => {
+  const { borrowingId } = req.body;
+  const result = db.returnBook(borrowingId);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  res.json(result);
+});
+
 // --- 15. GEMINI AI API SUITE ---
+
 
 // AI Chatbot Assistant
 app.post('/api/ai/chat', async (req, res) => {

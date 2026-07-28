@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { StudyMaterial } from '../../types';
 import { api } from '../../lib/api';
 import { Modal } from '../common/Modal';
-import { FolderDown, Plus, FileText, Download, UploadCloud } from 'lucide-react';
+import { FolderDown, Plus, FileText, Download, UploadCloud, Camera } from 'lucide-react';
+import { DocumentScannerModal } from '../common/DocumentScannerModal';
 
 export const StudyMaterialManager: React.FC = () => {
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const [form, setForm] = useState({
     title: '',
@@ -50,6 +52,14 @@ export const StudyMaterialManager: React.FC = () => {
     await loadData();
   };
 
+  const handleScanComplete = (pdfDataUrl: string, fileName: string) => {
+    setForm((prev) => ({
+      ...prev,
+      fileName,
+      category: 'PDF'
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -60,13 +70,23 @@ export const StudyMaterialManager: React.FC = () => {
           <p className="text-xs text-slate-500">Upload lecture PDFs, worksheets, revision notes, and past exam papers.</p>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl text-xs transition shadow-xs"
-        >
-          <UploadCloud className="w-4 h-4" />
-          <span>Upload Material</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsScannerOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-xs transition shadow-xs"
+          >
+            <Camera className="w-4 h-4" />
+            <span>Scan Printed Notes to PDF</span>
+          </button>
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl text-xs transition shadow-xs"
+          >
+            <UploadCloud className="w-4 h-4" />
+            <span>Upload Material</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -170,6 +190,15 @@ export const StudyMaterialManager: React.FC = () => {
           </button>
         </form>
       </Modal>
+
+      {/* Document Scanner Modal */}
+      <DocumentScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        documentType="assignment"
+        documentTitle="Teacher_Scanned_Study_Notes"
+        onScanComplete={handleScanComplete}
+      />
     </div>
   );
 };

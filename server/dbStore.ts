@@ -17,7 +17,10 @@ import {
   ChatMessage,
   CalendarEvent,
   AuditLogEntry,
-  DashboardStats
+  DashboardStats,
+  NotificationLog,
+  Book,
+  BookBorrowing
 } from '../src/types.js';
 
 // In-Memory store with local JSON backup persistence
@@ -40,7 +43,74 @@ export interface DBData {
   messages: ChatMessage[];
   calendarEvents?: CalendarEvent[];
   auditLogs?: AuditLogEntry[];
+  notificationLogs?: NotificationLog[];
+  books?: Book[];
+  borrowings?: BookBorrowing[];
 }
+
+
+const DEFAULT_NOTIFICATION_LOGS: NotificationLog[] = [
+  {
+    id: "notif-101",
+    type: "fee_reminder",
+    channel: "SMS_AND_EMAIL",
+    recipientId: "u-parent-1",
+    recipientName: "David Rivers",
+    recipientPhone: "+1 (555) 234-5678",
+    recipientEmail: "david.rivers@example.com",
+    studentName: "Alexandria Rivers",
+    title: "Fee Deadline Reminder: Term 1 Tuition Fee",
+    message: "Dear David Rivers, friendly reminder that Term 1 Tuition Fee ($1,200.00) for Alexandria Rivers is due on 2026-08-10. Pay easily via Greenwood Student Portal.",
+    sentAt: "2026-07-26T14:30:00.000Z",
+    status: "delivered",
+    triggeredBy: "Automated Fee Trigger (Scheduled Cron)",
+    metadata: {
+      feeId: "fee-1",
+      amount: 1200,
+      dueDate: "2026-08-10"
+    }
+  },
+  {
+    id: "notif-102",
+    type: "exam_schedule",
+    channel: "SMS_AND_EMAIL",
+    recipientId: "u-parent-2",
+    recipientName: "Sarah Chen",
+    recipientPhone: "+1 (555) 345-6789",
+    recipientEmail: "sarah.chen@example.com",
+    studentName: "Marcus Chen",
+    title: "Upcoming Exam Notice: Midterm Mathematics",
+    message: "Dear Parent, Midterm Mathematics Exam for Class 10-A is scheduled on 2026-08-15 at 09:00 AM (Duration: 90 mins). Total marks: 100. Please ensure timely preparation.",
+    sentAt: "2026-07-25T10:15:00.000Z",
+    status: "delivered",
+    triggeredBy: "Teacher Dr. Eleanor Vance",
+    metadata: {
+      examId: "exam-101",
+      examDate: "2026-08-15",
+      subjectName: "Mathematics"
+    }
+  },
+  {
+    id: "notif-103",
+    type: "fee_reminder",
+    channel: "SMS",
+    recipientId: "u-parent-3",
+    recipientName: "Robert Taylor",
+    recipientPhone: "+1 (555) 456-7890",
+    recipientEmail: "robert.taylor@example.com",
+    studentName: "Sophia Taylor",
+    title: "Library & Annual Activity Fee Reminder",
+    message: "Greenwood Academy Alert: Library & Activity Fee ($350.00) for Sophia Taylor is due on 2026-08-05. Please log in to complete payment.",
+    sentAt: "2026-07-24T16:00:00.000Z",
+    status: "delivered",
+    triggeredBy: "Admin Portal Bulk Trigger",
+    metadata: {
+      feeId: "fee-2",
+      amount: 350,
+      dueDate: "2026-08-05"
+    }
+  }
+];
 
 const DEFAULT_AUDIT_LOGS: AuditLogEntry[] = [
   {
@@ -915,6 +985,414 @@ class DBStore {
     this.saveToFile();
     return true;
   }
+
+  // --- Notification Logs & Service Triggers ---
+  getNotificationLogs(): NotificationLog[] {
+    if (!this.data.notificationLogs || this.data.notificationLogs.length === 0) {
+      this.data.notificationLogs = DEFAULT_NOTIFICATION_LOGS;
+      this.saveToFile();
+    }
+    return this.data.notificationLogs.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
+  }
+
+  addNotificationLog(log: Omit<NotificationLog, 'id' | 'sentAt'> & { sentAt?: string }): NotificationLog {
+    if (!this.data.notificationLogs) {
+      this.data.notificationLogs = DEFAULT_NOTIFICATION_LOGS;
+    }
+    const newLog: NotificationLog = {
+      id: `notif-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      sentAt: log.sentAt || new Date().toISOString(),
+      ...log
+    };
+    this.data.notificationLogs.unshift(newLog);
+    this.saveToFile();
+    return newLog;
+  }
+
+  clearNotificationLogs(): boolean {
+    this.data.notificationLogs = [];
+    this.saveToFile();
+    return true;
+  }
+
+  triggerFeeReminders(options?: {
+    channel?: 'SMS' | 'EMAIL' | 'SMS_AND_EMAIL';
+    triggeredBy?: string;
+    feeId?: string;
+    studentId?: string;
+  }): { count: number; logs: NotificationLog[] } {
+    const channel = options?.channel || 'SMS_AND_EMAIL';
+    const triggeredBy = options?.triggeredBy || 'Automated Fee Trigger System';
+    
+    // Find matching unpaid or partially paid fee records
+    let pendingFees = this.data.fees.filter(f => f.status === 'pending' || f.status === 'partial');
+    if (options?.feeId) {
+      pendingFees = pendingFees.filter(f => f.id === options.feeId);
+    }
+    if (options?.studentId) {
+      pendingFees = pendingFees.filter(f => f.studentId === options.studentId);
+    }
+
+    const createdLogs: NotificationLog[] = [];
+    const parents = this.data.users.filter(u => u.role === 'parent');
+
+    for (const fee of pendingFees) {
+      const dueAmount = fee.totalAmount - fee.paidAmount;
+      // Match parent for student if available
+      const studentUser = this.data.users.find(u => u.id === fee.studentId || u.name.toLowerCase() === fee.studentName.toLowerCase());
+      const parentUser = parents.find(p => p.childStudentId === fee.studentId || (p.childName && p.childName.toLowerCase() === fee.studentName.toLowerCase())) || parents[0];
+
+      const parentName = parentUser?.name || 'Parent/Guardian';
+      const recipientPhone = parentUser?.phone || '+1 (555) 019-2831';
+      const recipientEmail = parentUser?.email || `${parentName.toLowerCase().replace(/\s+/g, '.')}@example.com`;
+
+      const title = `Fee Reminder: ${fee.title} Due Soon`;
+      const message = `Dear ${parentName}, this is an automated reminder from Greenwood Academy regarding ${fee.studentName}'s ${fee.title}. Outstanding balance: $${dueAmount.toLocaleString()}. Payment Due Date: ${fee.dueDate}. Please log into the portal to complete payment.`;
+
+      const log = this.addNotificationLog({
+        type: 'fee_reminder',
+        channel,
+        recipientId: parentUser?.id,
+        recipientName: parentName,
+        recipientPhone,
+        recipientEmail,
+        studentName: fee.studentName,
+        title,
+        message,
+        status: 'delivered',
+        triggeredBy,
+        metadata: {
+          feeId: fee.id,
+          amount: dueAmount,
+          dueDate: fee.dueDate
+        }
+      });
+
+      createdLogs.push(log);
+    }
+
+    // Also record an audit log for transparency
+    this.addAuditLog({
+      action: 'NOTIFICATION_TRIGGERED',
+      category: 'finance',
+      userId: 'system',
+      userName: triggeredBy,
+      userRole: 'admin',
+      details: `Triggered automated fee reminders to ${createdLogs.length} parents via ${channel}`,
+      targetEntity: `Fee Reminders Engine`,
+      status: 'success'
+    });
+
+    return { count: createdLogs.length, logs: createdLogs };
+  }
+
+  triggerExamReminders(options?: {
+    channel?: 'SMS' | 'EMAIL' | 'SMS_AND_EMAIL';
+    triggeredBy?: string;
+    examId?: string;
+    classId?: string;
+  }): { count: number; logs: NotificationLog[] } {
+    const channel = options?.channel || 'SMS_AND_EMAIL';
+    const triggeredBy = options?.triggeredBy || 'Automated Exam Schedule Trigger';
+
+    let targetExams = this.data.exams;
+    if (options?.examId) {
+      targetExams = targetExams.filter(e => e.id === options.examId);
+    }
+    if (options?.classId) {
+      targetExams = targetExams.filter(e => e.classId === options.classId);
+    }
+
+    const createdLogs: NotificationLog[] = [];
+    const parents = this.data.users.filter(u => u.role === 'parent');
+
+    for (const exam of targetExams) {
+      // Find parents of students in that class
+      const classStudents = this.data.users.filter(u => u.role === 'student' && u.className === exam.className);
+      const targetParents: Array<Partial<User>> = parents.length > 0 ? parents : [{ name: 'Class Parent', phone: '+1 (555) 888-9900', email: 'parent@example.com', id: 'p-default', childStudentId: 'u-student1' }];
+
+      for (const parentUser of targetParents.slice(0, Math.max(1, classStudents.length))) {
+        const student = classStudents.find(s => s.id === parentUser.childStudentId) || classStudents[0];
+        const studentName = student ? student.name : 'Your Child';
+        const parentName = parentUser.name || 'Parent/Guardian';
+
+        const title = `Exam Schedule Alert: ${exam.title} (${exam.subjectName})`;
+        const message = `Dear ${parentName}, Greenwood Academy Notice: ${exam.title} (${exam.subjectName}) for ${exam.className} is scheduled on ${exam.date} at ${exam.startTime}. Duration: ${exam.durationMinutes} mins. Total Marks: ${exam.totalMarks}. Please support ${studentName} in preparation.`;
+
+        const log = this.addNotificationLog({
+          type: 'exam_schedule',
+          channel,
+          recipientId: parentUser.id,
+          recipientName: parentName,
+          recipientPhone: parentUser.phone || '+1 (555) 999-0011',
+          recipientEmail: parentUser.email || 'parent@school.org',
+          studentName,
+          title,
+          message,
+          status: 'delivered',
+          triggeredBy,
+          metadata: {
+            examId: exam.id,
+            examDate: exam.date,
+            subjectName: exam.subjectName
+          }
+        });
+
+        createdLogs.push(log);
+      }
+    }
+
+    this.addAuditLog({
+      action: 'NOTIFICATION_TRIGGERED',
+      category: 'academic',
+      userId: 'system',
+      userName: triggeredBy,
+      userRole: 'admin',
+      details: `Dispatched exam schedule notifications for ${targetExams.length} upcoming exams to parents via ${channel}`,
+      targetEntity: `Exam Notification Trigger`,
+      status: 'success'
+    });
+
+    return { count: createdLogs.length, logs: createdLogs };
+  }
+
+  // --- Library Management Store ---
+  getBooks(): Book[] {
+    if (!this.data.books || this.data.books.length === 0) {
+      this.data.books = [
+        {
+          id: "bk-101",
+          isbn: "978-0143127741",
+          title: "To Kill a Mockingbird",
+          author: "Harper Lee",
+          category: "Literature",
+          publisher: "Harper Perennial",
+          publishedYear: 1960,
+          totalCopies: 5,
+          availableCopies: 3,
+          locationRack: "Rack A-1",
+          synopsis: "A classic story of justice, racial tension, and moral growth in the American South."
+        },
+        {
+          id: "bk-102",
+          isbn: "978-0451524935",
+          title: "1984",
+          author: "George Orwell",
+          category: "Fiction",
+          publisher: "Signet Classics",
+          publishedYear: 1949,
+          totalCopies: 8,
+          availableCopies: 6,
+          locationRack: "Rack A-3",
+          synopsis: "A chilling dystopian vision of totalitarian government control and ubiquitous surveillance."
+        },
+        {
+          id: "bk-103",
+          isbn: "978-0131103627",
+          title: "The C Programming Language",
+          author: "Brian W. Kernighan, Dennis M. Ritchie",
+          category: "Technology",
+          publisher: "Prentice Hall",
+          publishedYear: 1988,
+          totalCopies: 4,
+          availableCopies: 2,
+          locationRack: "Rack C-2",
+          synopsis: "The definitive guide and fundamental reference for C programming."
+        },
+        {
+          id: "bk-104",
+          isbn: "978-0307474278",
+          title: "A Short History of Nearly Everything",
+          author: "Bill Bryson",
+          category: "Science",
+          publisher: "Broadway Books",
+          publishedYear: 2003,
+          totalCopies: 6,
+          availableCopies: 5,
+          locationRack: "Rack B-1",
+          synopsis: "An accessible and fascinating tour through physical science, cosmology, and biology."
+        },
+        {
+          id: "bk-105",
+          isbn: "978-0060935467",
+          title: "Principles of Mathematics",
+          author: "Bertrand Russell",
+          category: "Mathematics",
+          publisher: "Routledge",
+          publishedYear: 1903,
+          totalCopies: 3,
+          availableCopies: 3,
+          locationRack: "Rack D-4",
+          synopsis: "An foundational exploration of mathematical logic and formal reasoning."
+        }
+      ];
+      this.saveToFile();
+    }
+    return this.data.books;
+  }
+
+  addBook(book: Omit<Book, 'id'>): Book {
+    if (!this.data.books) {
+      this.getBooks();
+    }
+    const newBook: Book = {
+      id: `bk-${Date.now()}`,
+      ...book,
+      availableCopies: book.totalCopies
+    };
+    this.data.books!.push(newBook);
+    this.saveToFile();
+
+    this.addAuditLog({
+      action: 'BOOK_ADDED',
+      category: 'academic',
+      userId: 'system',
+      userName: 'Librarian',
+      userRole: 'admin',
+      details: `Added new library book: ${newBook.title} (${newBook.isbn})`,
+      targetEntity: `Library Book`,
+      status: 'success'
+    });
+
+    return newBook;
+  }
+
+  updateBook(id: string, updates: Partial<Book>): Book | null {
+    if (!this.data.books) this.getBooks();
+    const index = this.data.books!.findIndex(b => b.id === id);
+    if (index === -1) return null;
+
+    this.data.books![index] = { ...this.data.books![index], ...updates };
+    this.saveToFile();
+    return this.data.books![index];
+  }
+
+  deleteBook(id: string): boolean {
+    if (!this.data.books) this.getBooks();
+    const lenBefore = this.data.books!.length;
+    this.data.books = this.data.books!.filter(b => b.id !== id);
+    if (this.data.books.length !== lenBefore) {
+      this.saveToFile();
+      return true;
+    }
+    return false;
+  }
+
+  getBorrowings(): BookBorrowing[] {
+    if (!this.data.borrowings || this.data.borrowings.length === 0) {
+      this.data.borrowings = [
+        {
+          id: "brw-101",
+          bookId: "bk-101",
+          bookTitle: "To Kill a Mockingbird",
+          studentId: "u-student1",
+          studentName: "Alexandria Rivers",
+          studentClass: "Class 10-A",
+          borrowedDate: "2026-07-15",
+          dueDate: "2026-07-29",
+          status: "active",
+          issuedBy: "Librarian Mrs. Higgins"
+        },
+        {
+          id: "brw-102",
+          bookId: "bk-103",
+          bookTitle: "The C Programming Language",
+          studentId: "u-student2",
+          studentName: "Marcus Chen",
+          studentClass: "Class 10-A",
+          borrowedDate: "2026-07-10",
+          dueDate: "2026-07-24",
+          status: "overdue",
+          issuedBy: "Librarian Mrs. Higgins",
+          fineAmount: 5
+        }
+      ];
+      this.saveToFile();
+    }
+    return this.data.borrowings;
+  }
+
+  checkoutBook(data: {
+    bookId: string;
+    studentId: string;
+    studentName: string;
+    studentClass: string;
+    dueDate: string;
+    issuedBy?: string;
+  }): BookBorrowing | { error: string } {
+    const books = this.getBooks();
+    const book = books.find(b => b.id === data.bookId);
+
+    if (!book) return { error: 'Book not found' };
+    if (book.availableCopies <= 0) return { error: 'No available copies left for checkout' };
+
+    // Deduct available copy
+    book.availableCopies -= 1;
+
+    const newBorrowing: BookBorrowing = {
+      id: `brw-${Date.now()}`,
+      bookId: book.id,
+      bookTitle: book.title,
+      studentId: data.studentId,
+      studentName: data.studentName,
+      studentClass: data.studentClass,
+      borrowedDate: new Date().toISOString().split('T')[0],
+      dueDate: data.dueDate,
+      status: 'active',
+      issuedBy: data.issuedBy || 'Librarian'
+    };
+
+    if (!this.data.borrowings) this.getBorrowings();
+    this.data.borrowings!.unshift(newBorrowing);
+    this.saveToFile();
+
+    this.addAuditLog({
+      action: 'BOOK_CHECKED_OUT',
+      category: 'academic',
+      userId: data.studentId,
+      userName: data.studentName,
+      userRole: 'student',
+      details: `Checked out "${book.title}" due on ${data.dueDate}`,
+      targetEntity: `Library Borrowing`,
+      status: 'success'
+    });
+
+    return newBorrowing;
+  }
+
+  returnBook(borrowingId: string): BookBorrowing | { error: string } {
+    if (!this.data.borrowings) this.getBorrowings();
+    const borrowing = this.data.borrowings!.find(b => b.id === borrowingId);
+    if (!borrowing) return { error: 'Borrowing record not found' };
+
+    if (borrowing.status === 'returned') return { error: 'Book already returned' };
+
+    borrowing.status = 'returned';
+    borrowing.returnedDate = new Date().toISOString().split('T')[0];
+
+    // Return copy to book inventory
+    const books = this.getBooks();
+    const book = books.find(b => b.id === borrowing.bookId);
+    if (book) {
+      book.availableCopies = Math.min(book.totalCopies, book.availableCopies + 1);
+    }
+
+    this.saveToFile();
+
+    this.addAuditLog({
+      action: 'BOOK_RETURNED',
+      category: 'academic',
+      userId: borrowing.studentId,
+      userName: borrowing.studentName,
+      userRole: 'student',
+      details: `Returned book "${borrowing.bookTitle}"`,
+      targetEntity: `Library Borrowing`,
+      status: 'success'
+    });
+
+    return borrowing;
+  }
+
 
   // --- Analytics & Dashboard Stats ---
   getStats(): DashboardStats {

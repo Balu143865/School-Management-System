@@ -212,6 +212,30 @@ export interface ChatMessage {
   isRead?: boolean;
 }
 
+export interface NotificationLog {
+  id: string;
+  type: 'fee_reminder' | 'exam_schedule' | 'general_notice' | 'attendance_alert';
+  channel: 'SMS' | 'EMAIL' | 'SMS_AND_EMAIL' | 'PUSH';
+  recipientId?: string;
+  recipientName: string;
+  recipientPhone?: string;
+  recipientEmail?: string;
+  studentName?: string;
+  title: string;
+  message: string;
+  sentAt: string;
+  status: 'sent' | 'delivered' | 'failed' | 'scheduled';
+  triggeredBy: string;
+  metadata?: {
+    feeId?: string;
+    examId?: string;
+    amount?: number;
+    dueDate?: string;
+    examDate?: string;
+    subjectName?: string;
+  };
+}
+
 export interface DashboardStats {
   totalStudents: number;
   totalTeachers: number;
@@ -237,4 +261,35 @@ export interface AuditLogEntry {
   targetEntity?: string;
   status: 'success' | 'warning' | 'error' | 'info';
 }
+
+export interface Book {
+  id: string;
+  isbn: string;
+  title: string;
+  author: string;
+  category: string;
+  publisher: string;
+  publishedYear: number;
+  totalCopies: number;
+  availableCopies: number;
+  locationRack: string;
+  coverImage?: string;
+  synopsis?: string;
+}
+
+export interface BookBorrowing {
+  id: string;
+  bookId: string;
+  bookTitle: string;
+  studentId: string;
+  studentName: string;
+  studentClass: string;
+  borrowedDate: string;
+  dueDate: string;
+  returnedDate?: string;
+  status: 'active' | 'returned' | 'overdue';
+  issuedBy: string;
+  fineAmount?: number;
+}
+
 

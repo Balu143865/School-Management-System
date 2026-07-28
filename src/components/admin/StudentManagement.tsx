@@ -3,14 +3,17 @@ import { User, ClassRoom } from '../../types';
 import { api } from '../../lib/api';
 import { DataTable, Column } from '../common/DataTable';
 import { Modal } from '../common/Modal';
-import { UserPlus, Trash2, Edit3, GraduationCap, FileText } from 'lucide-react';
+import { UserPlus, Trash2, Edit3, GraduationCap, FileText, QrCode } from 'lucide-react';
 import { generateStudentReportPDF } from '../../lib/pdfGenerator';
+import { DigitalStudentIdModal } from '../common/DigitalStudentIdModal';
 
 export const StudentManagement: React.FC = () => {
   const [students, setStudents] = useState<User[]>([]);
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStudentForId, setSelectedStudentForId] = useState<User | null>(null);
+  const [isIdModalOpen, setIsIdModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -157,6 +160,16 @@ export const StudentManagement: React.FC = () => {
         actions={(item) => (
           <div className="flex items-center justify-end gap-1">
             <button
+              onClick={() => {
+                setSelectedStudentForId(item);
+                setIsIdModalOpen(true);
+              }}
+              className="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition"
+              title="View Digital Student ID Pass with QR Code"
+            >
+              <QrCode className="w-4 h-4" />
+            </button>
+            <button
               onClick={() => handleDownloadStudentPdf(item)}
               className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition"
               title="Download Official PDF Report Card"
@@ -172,6 +185,13 @@ export const StudentManagement: React.FC = () => {
             </button>
           </div>
         )}
+      />
+
+      {/* Digital Student ID Modal */}
+      <DigitalStudentIdModal
+        isOpen={isIdModalOpen}
+        onClose={() => setIsIdModalOpen(false)}
+        student={selectedStudentForId}
       />
 
       {/* Register Student Modal */}
