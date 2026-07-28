@@ -101,9 +101,18 @@ export const api = {
 
   // Users
   async getUsers(role?: string) {
-    const url = role ? `/api/users?role=${role}` : '/api/users';
-    const res = await fetch(url, { headers: getAuthHeader() });
-    return handleResponse<User[]>(res);
+    const cacheKey = role ? `users_${role}` : 'users_all';
+    try {
+      return await fetchWithCache<User[]>(cacheKey, async () => {
+        const url = role ? `/api/users?role=${role}` : '/api/users';
+        const res = await fetch(url, { headers: getAuthHeader() });
+        return handleResponse<User[]>(res);
+      });
+    } catch (err) {
+      console.warn(`[getUsers] Fetch failed, returning cached or empty list:`, err);
+      const cached = offlineStorage.get<User[]>(cacheKey) || offlineStorage.get<User[]>('users_all');
+      return cached ? cached.data : [];
+    }
   },
 
   async createUser(user: Partial<User>) {
@@ -167,6 +176,14 @@ export const api = {
       body: JSON.stringify(sub)
     });
     return handleResponse<Subject>(res);
+  },
+
+  async deleteSubject(id: string) {
+    const res = await fetch(`/api/subjects/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return handleResponse<{ success: boolean }>(res);
   },
 
   // Attendance
@@ -236,6 +253,14 @@ export const api = {
     return handleResponse<Homework>(res);
   },
 
+  async deleteHomework(id: string) {
+    const res = await fetch(`/api/homework/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return handleResponse<{ success: boolean }>(res);
+  },
+
   async getSubmissions(homeworkId?: string, studentId?: string) {
     const params = new URLSearchParams();
     if (homeworkId) params.append('homeworkId', homeworkId);
@@ -276,6 +301,14 @@ export const api = {
       body: JSON.stringify(exam)
     });
     return handleResponse<Exam>(res);
+  },
+
+  async deleteExam(id: string) {
+    const res = await fetch(`/api/exams/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return handleResponse<{ success: boolean }>(res);
   },
 
   async getExamResults(examId?: string, studentId?: string) {
@@ -334,6 +367,14 @@ export const api = {
     return handleResponse<Notice>(res);
   },
 
+  async deleteNotice(id: string) {
+    const res = await fetch(`/api/notices/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return handleResponse<{ success: boolean }>(res);
+  },
+
   // Study Materials
   async getStudyMaterials() {
     return fetchWithCache<StudyMaterial[]>('study_materials', async () => {
@@ -351,19 +392,64 @@ export const api = {
     return handleResponse<StudyMaterial>(res);
   },
 
+  async deleteStudyMaterial(id: string) {
+    const res = await fetch(`/api/study-materials/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    });
+    return handleResponse<{ success: boolean }>(res);
+  },
+
   // Messages
   async getMessages() {
-    const res = await fetch('/api/messages');
-    return handleResponse<ChatMessage[]>(res);
+    try {
+      return await fetchWithCache<ChatMessage[]>('messages', async () => {
+        const res = await fetch('/api/messages');
+        return handleResponse<ChatMessage[]>(res);
+      });
+    } catch (err) {
+      console.warn(`[getMessages] Fetch failed, returning cached or empty list:`, err);
+      const cached = offlineStorage.get<ChatMessage[]>('messages');
+      return cached ? cached.data : [];
+    }
   },
 
   async sendMessage(msg: Partial<ChatMessage>) {
-    const res = await fetch('/api/messages', {
-      method: 'POST',
-      headers: getAuthHeader(),
-      body: JSON.stringify(msg)
-    });
-    return handleResponse<ChatMessage>(res);
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: JSON.stringify(msg)
+      });
+      const created = await handleResponse<ChatMessage>(res);
+      const cached = offlineStorage.get<ChatMessage[]>('messages');
+      if (cached) {
+        offlineStorage.set('messages', [...cached.data, created]);
+      }
+      return created;
+    } catch (err) {
+      console.warn('[sendMessage] Server fetch failed, storing message locally:', err);
+      const newMsg: ChatMessage = {
+        id: `msg-local-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        senderId: msg.senderId || 'user',
+        senderName: msg.senderName || 'You',
+        senderRole: msg.senderRole || 'parent',
+        receiverRole: msg.receiverRole || 'direct',
+        receiverId: msg.receiverId,
+        receiverName: msg.receiverName,
+        channelId: msg.channelId,
+        text: msg.text || '',
+        avatar: msg.avatar,
+        attachmentName: msg.attachmentName,
+        attachmentUrl: msg.attachmentUrl,
+        isRead: false
+      };
+      const cached = offlineStorage.get<ChatMessage[]>('messages');
+      const updated = cached ? [...cached.data, newMsg] : [newMsg];
+      offlineStorage.set('messages', updated);
+      return newMsg;
+    }
   },
 
   // Stats

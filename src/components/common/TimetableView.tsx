@@ -64,7 +64,7 @@ export const TimetableView: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 print:hidden">
           <select
             value={selectedClass}
             onChange={(e) => setSelectedClass(e.target.value)}
@@ -85,7 +85,7 @@ export const TimetableView: React.FC = () => {
 
           <button
             onClick={handlePrint}
-            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition hidden md:flex"
+            className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer print:hidden"
             title="Print Schedule"
           >
             <Printer className="w-3.5 h-3.5" />
@@ -94,43 +94,43 @@ export const TimetableView: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="p-3 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between text-xs gap-2">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden print:border-slate-300 print:shadow-none print:m-0 print:w-full">
+        <div className="p-3 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between text-xs gap-2 print:bg-slate-100">
           <span className="font-bold text-slate-800 flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" /> Greenwood Academy Official Schedule
+            <ShieldCheck className="w-4 h-4 text-emerald-600 print:hidden" /> Greenwood Academy Official Schedule - {selectedClass}
           </span>
           <div className="flex items-center gap-2">
             {lastCacheTime && (
-              <span className="text-[10px] font-mono bg-slate-200/70 text-slate-600 px-2 py-0.5 rounded flex items-center gap-1">
+              <span className="text-[10px] font-mono bg-slate-200/70 text-slate-600 px-2 py-0.5 rounded flex items-center gap-1 print:hidden">
                 <HardDrive className="w-3 h-3 text-slate-500" /> Cache Sync: {lastCacheTime}
               </span>
             )}
-            <span className="text-[11px] font-mono text-slate-400 uppercase">Effective: Term 1</span>
+            <span className="text-[11px] font-mono text-slate-400 uppercase print:text-slate-700">Effective: Term 1 (2025-2026)</span>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 font-semibold text-slate-700 uppercase text-[11px] tracking-wider">
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="w-full text-left text-xs print:text-[11px] print:border-collapse">
+            <thead className="bg-slate-50 border-b border-slate-200 font-semibold text-slate-700 uppercase text-[11px] tracking-wider print:bg-slate-100">
               <tr>
-                <th className="p-3.5 border-r border-slate-200/80">Time Slot</th>
-                <th className="p-3.5">Monday</th>
-                <th className="p-3.5">Tuesday</th>
-                <th className="p-3.5">Wednesday</th>
-                <th className="p-3.5">Thursday</th>
+                <th className="p-3.5 border-r border-slate-200/80 print:border-slate-300">Time Slot</th>
+                <th className="p-3.5 print:border-r print:border-slate-300">Monday</th>
+                <th className="p-3.5 print:border-r print:border-slate-300">Tuesday</th>
+                <th className="p-3.5 print:border-r print:border-slate-300">Wednesday</th>
+                <th className="p-3.5 print:border-r print:border-slate-300">Thursday</th>
                 <th className="p-3.5">Friday</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
+            <tbody className="divide-y divide-slate-100 text-slate-700 print:divide-slate-300">
               {schedule.map((slot, idx) => {
                 const isBreak = slot.mon.includes('RECESS');
                 return (
-                  <tr key={idx} className={isBreak ? 'bg-amber-50/60 font-semibold text-amber-900' : 'hover:bg-slate-50 transition'}>
-                    <td className="p-3.5 border-r border-slate-200/80 font-mono text-[11px] text-slate-500">{slot.time}</td>
-                    <td className="p-3.5">{slot.mon}</td>
-                    <td className="p-3.5">{slot.tue}</td>
-                    <td className="p-3.5">{slot.wed}</td>
-                    <td className="p-3.5">{slot.thu}</td>
+                  <tr key={idx} className={isBreak ? 'bg-amber-50/60 font-semibold text-amber-900 print:bg-slate-100' : 'hover:bg-slate-50 transition'}>
+                    <td className="p-3.5 border-r border-slate-200/80 font-mono text-[11px] text-slate-500 print:border-slate-300 print:text-slate-800 font-bold">{slot.time}</td>
+                    <td className="p-3.5 print:border-r print:border-slate-200">{slot.mon}</td>
+                    <td className="p-3.5 print:border-r print:border-slate-200">{slot.tue}</td>
+                    <td className="p-3.5 print:border-r print:border-slate-200">{slot.wed}</td>
+                    <td className="p-3.5 print:border-r print:border-slate-200">{slot.thu}</td>
                     <td className="p-3.5">{slot.fri}</td>
                   </tr>
                 );

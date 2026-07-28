@@ -3,6 +3,7 @@ import { User, ClassRoom } from '../../types';
 import { api } from '../../lib/api';
 import { DataTable, Column } from '../common/DataTable';
 import { Modal } from '../common/Modal';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { UserPlus, Trash2, Edit3, GraduationCap, FileText, QrCode } from 'lucide-react';
 import { generateStudentReportPDF } from '../../lib/pdfGenerator';
 import { DigitalStudentIdModal } from '../common/DigitalStudentIdModal';
@@ -14,6 +15,8 @@ export const StudentManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudentForId, setSelectedStudentForId] = useState<User | null>(null);
   const [isIdModalOpen, setIsIdModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -79,10 +82,17 @@ export const StudentManagement: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to remove this student record?')) {
-      await api.deleteUser(id);
+  const confirmDeleteStudent = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.deleteUser(deleteTarget.id);
+      setDeleteTarget(null);
       await loadData();
+    } catch (err) {
+      console.error('Failed to delete student:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -177,14 +187,25 @@ export const StudentManagement: React.FC = () => {
               <FileText className="w-4 h-4" />
             </button>
             <button
-              onClick={() => handleDelete(item.id)}
-              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-              title="Delete"
+              onClick={() => setDeleteTarget(item)}
+              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+              title="Delete Student"
             >
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
         )}
+      />
+
+      {/* Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteStudent}
+        title="Delete Student Record"
+        itemName={deleteTarget?.name}
+        description={`Are you sure you want to delete ${deleteTarget?.name || 'this student'}? This will remove all associated enrollment and grade records.`}
+        isLoading={isDeleting}
       />
 
       {/* Digital Student ID Modal */}

@@ -17,6 +17,7 @@ import {
   Mail,
   GraduationCap,
   ChevronRight,
+  ChevronLeft,
   Info,
   Calendar,
   AlertCircle,
@@ -42,38 +43,43 @@ export const MessagingView: React.FC = () => {
   const [isAiDrafting, setIsAiDrafting] = useState<boolean>(false);
   const [showStudentContext, setShowStudentContext] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const [mobileView, setMobileView] = useState<'contacts' | 'chat' | 'info'>('chat');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialLoadedRef = useRef<boolean>(false);
 
   // Load users and messages
   const loadData = async () => {
     try {
       const [usersData, msgData] = await Promise.all([
-        api.getUsers(),
-        api.getMessages()
+        api.getUsers().catch(() => []),
+        api.getMessages().catch(() => [])
       ]);
-      setAllUsers(usersData);
-      setMessages(msgData);
+      setAllUsers(usersData || []);
+      setMessages(msgData || []);
 
-      // Default selected recipient based on user role
-      if (user) {
+      // Default selected recipient ONLY on initial load
+      if (user && !initialLoadedRef.current) {
+        initialLoadedRef.current = true;
+        const validUsers = usersData || [];
         if (role === 'parent') {
           // Find teacher
-          const teacher = usersData.find(u => u.role === 'teacher');
+          const teacher = validUsers.find(u => u.role === 'teacher');
           if (teacher) {
             setActiveRecipient(teacher);
             setSelectedChannel(`direct-${teacher.id}-${user.id}`);
           }
         } else if (role === 'teacher') {
           // Find parent
-          const parent = usersData.find(u => u.role === 'parent');
+          const parent = validUsers.find(u => u.role === 'parent');
           if (parent) {
             setActiveRecipient(parent);
             setSelectedChannel(`direct-${user.id}-${parent.id}`);
           }
         } else {
           // Admin or default
-          const parent = usersData.find(u => u.role === 'parent');
+          const parent = validUsers.find(u => u.role === 'parent');
           if (parent) {
             setActiveRecipient(parent);
             setSelectedChannel(`direct-u-teacher1-${parent.id}`);
@@ -81,7 +87,7 @@ export const MessagingView: React.FC = () => {
         }
       }
     } catch (err) {
-      console.error("Error loading messaging data:", err);
+      console.warn("Transient issue loading messaging data:", err);
     } finally {
       setLoading(false);
     }
@@ -145,17 +151,20 @@ export const MessagingView: React.FC = () => {
     if (!messageInput.trim() && !attachmentName) return;
     if (!user) return;
 
+    const sentText = messageInput.trim();
+    const targetRecipient = activeRecipient;
+
     try {
-      const channelId = activeRecipient ? `direct-${user.id}-${activeRecipient.id}` : 'announcements';
+      const channelId = targetRecipient ? `direct-${user.id}-${targetRecipient.id}` : 'announcements';
       const newMsg: Partial<ChatMessage> = {
         senderId: user.id,
         senderName: user.name,
         senderRole: user.role as UserRole,
-        receiverRole: activeRecipient ? 'direct' : 'all',
-        receiverId: activeRecipient?.id,
-        receiverName: activeRecipient?.name,
+        receiverRole: targetRecipient ? 'direct' : 'all',
+        receiverId: targetRecipient?.id,
+        receiverName: targetRecipient?.name,
         channelId,
-        text: messageInput.trim(),
+        text: sentText,
         avatar: user.avatar,
         attachmentName: attachmentName || undefined,
         attachmentUrl: attachmentName ? '#' : undefined,
@@ -166,6 +175,60 @@ export const MessagingView: React.FC = () => {
       setMessages(prev => [...prev, created]);
       setMessageInput('');
       setAttachmentName('');
+
+      // Automatic Relative Reply from Recipient
+      if (targetRecipient) {
+        setIsTyping(true);
+        setTimeout(async () => {
+          try {
+            let replyText = '';
+            try {
+              const aiRes = await api.aiChat(
+                `Generate a short, polite, professional, direct reply (1-2 sentences) from ${targetRecipient.name} (${targetRecipient.role}) to ${user.name} (${user.role}) responding directly to their message: "${sentText}". Do not include quotes or surrounding formatting.`,
+                targetRecipient.role,
+                { recipientName: user.name, studentName: targetRecipient.childName || 'Alex Johnson' }
+              );
+              if (aiRes && aiRes.reply) {
+                replyText = aiRes.reply.replace(/^"|"$/g, '').trim();
+              }
+            } catch {
+              // Contextual fallback reply if offline or API error
+              const lower = sentText.toLowerCase();
+              if (lower.includes('homework') || lower.includes('assignment') || lower.includes('project')) {
+                replyText = `Thank you for the update regarding the assignment! I've noted this down and will follow up shortly.`;
+              } else if (lower.includes('absent') || lower.includes('sick') || lower.includes('leave')) {
+                replyText = `Thank you for informing me about the absence. We wish them a speedy recovery!`;
+              } else if (lower.includes('grade') || lower.includes('marks') || lower.includes('exam') || lower.includes('result')) {
+                replyText = `Thank you for reaching out! I will review the academic performance records and update you.`;
+              } else if (lower.includes('fee') || lower.includes('payment') || lower.includes('receipt')) {
+                replyText = `Thank you for the notification regarding the fee payment. The administration team will verify it.`;
+              } else {
+                replyText = `Hello ${user.name}, thank you for your message! I have received your note and will get back to you shortly.`;
+              }
+            }
+
+            const replyMsg: Partial<ChatMessage> = {
+              senderId: targetRecipient.id,
+              senderName: targetRecipient.name,
+              senderRole: targetRecipient.role as UserRole,
+              receiverRole: 'direct',
+              receiverId: user.id,
+              receiverName: user.name,
+              channelId,
+              text: replyText,
+              avatar: targetRecipient.avatar,
+              isRead: false
+            };
+
+            const autoCreated = await api.sendMessage(replyMsg);
+            setMessages(prev => [...prev, autoCreated]);
+          } catch (err) {
+            console.error('Error sending auto-reply:', err);
+          } finally {
+            setIsTyping(false);
+          }
+        }, 1500);
+      }
     } catch (err) {
       console.error("Failed to send message:", err);
     }
@@ -176,6 +239,7 @@ export const MessagingView: React.FC = () => {
     if (user) {
       setSelectedChannel(`direct-${user.id}-${contact.id}`);
     }
+    setMobileView('chat');
   };
 
   // Gemini AI Draft Prompts for Teachers & Parents
@@ -248,9 +312,9 @@ export const MessagingView: React.FC = () => {
       </div>
 
       {/* Main 3-Column Messaging Interface */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row h-[620px] overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row h-[580px] md:h-[620px] overflow-hidden">
         {/* Column 1: Contacts & Channels Sidebar */}
-        <div className="w-full md:w-80 border-r border-slate-200 bg-slate-50 flex flex-col shrink-0">
+        <div className={`w-full md:w-80 border-r border-slate-200 bg-slate-50 flex-col shrink-0 ${mobileView === 'contacts' ? 'flex flex-1 h-full' : 'hidden md:flex'}`}>
           {/* Filter Pills */}
           <div className="p-3 border-b border-slate-200 space-y-2.5">
             <div className="relative">
@@ -280,6 +344,7 @@ export const MessagingView: React.FC = () => {
                   setFilterType('announcements');
                   setSelectedChannel('announcements');
                   setActiveRecipient(null);
+                  setMobileView('chat');
                 }}
                 className={`flex-1 py-1 rounded text-center transition ${
                   filterType === 'announcements'
@@ -300,6 +365,7 @@ export const MessagingView: React.FC = () => {
                 onClick={() => {
                   setSelectedChannel('announcements');
                   setActiveRecipient(null);
+                  setMobileView('chat');
                 }}
                 className={`w-full p-3 text-left flex items-start gap-3 transition ${
                   selectedChannel === 'announcements'
@@ -373,50 +439,59 @@ export const MessagingView: React.FC = () => {
         </div>
 
         {/* Column 2: Main Chat Box */}
-        <div className="flex-1 flex flex-col bg-white">
+        <div className={`flex-1 flex-col bg-white ${mobileView === 'chat' ? 'flex flex-1 h-full' : 'hidden md:flex'}`}>
           {/* Chat Header */}
-          <div className="p-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
-            {activeRecipient ? (
-              <div className="flex items-center gap-3">
-                <img
-                  src={activeRecipient.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"}
-                  alt={activeRecipient.name}
-                  className="w-9 h-9 rounded-full object-cover border border-slate-300"
-                />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-slate-900 text-sm">{activeRecipient.name}</h3>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 bg-blue-100 text-blue-700 rounded capitalize">
-                      {activeRecipient.role}
-                    </span>
+          <div className="p-3 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <button
+                onClick={() => setMobileView('contacts')}
+                className="md:hidden p-1.5 bg-slate-200/80 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-0.5 shrink-0 transition"
+                title="Back to contacts list"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Contacts</span>
+              </button>
+
+              {activeRecipient ? (
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <img
+                    src={activeRecipient.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"}
+                    alt={activeRecipient.name}
+                    className="w-8 h-8 rounded-full object-cover border border-slate-300 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-bold text-slate-900 text-xs sm:text-sm truncate">{activeRecipient.name}</h3>
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 bg-blue-100 text-blue-700 rounded capitalize shrink-0">
+                        {activeRecipient.role}
+                      </span>
+                    </div>
+                    <div className="text-[10px] sm:text-[11px] text-slate-500 truncate">
+                      {activeRecipient.role === 'parent' ? `Student: ${activeRecipient.childName || 'Alex Johnson'}` : activeRecipient.subject || activeRecipient.email}
+                    </div>
                   </div>
-                  <div className="text-[11px] text-slate-500 flex items-center gap-2">
-                    {activeRecipient.role === 'parent' && (
-                      <span>Student: {activeRecipient.childName || 'Alex Johnson'}</span>
-                    )}
-                    {activeRecipient.phone && <span>• {activeRecipient.phone}</span>}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 bg-blue-600 text-white rounded flex items-center justify-center font-bold text-xs shrink-0">
+                    📢
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm">School Broadcast</h3>
+                    <p className="text-[10px] text-slate-500">Official circulars</p>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-600 text-white rounded flex items-center justify-center font-bold text-sm">
-                  📢
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 text-sm">School-wide Broadcasting Channel</h3>
-                  <p className="text-[11px] text-slate-500">Official circulars & general announcements</p>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {activeRecipient && (
               <button
-                onClick={() => setShowStudentContext(!showStudentContext)}
-                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded flex items-center gap-1 transition"
+                onClick={() => setMobileView(mobileView === 'info' ? 'chat' : 'info')}
+                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded flex items-center gap-1 transition shrink-0 ml-2"
               >
                 <Info className="w-3.5 h-3.5 text-blue-600" />
-                <span className="hidden sm:inline">{showStudentContext ? 'Hide Info' : 'Student Info'}</span>
+                <span className="hidden sm:inline">{showStudentContext ? 'Hide Info' : 'Info'}</span>
+                <span className="sm:hidden text-[10px] font-bold">Info</span>
               </button>
             )}
           </div>
@@ -483,6 +558,19 @@ export const MessagingView: React.FC = () => {
                   </div>
                 );
               })
+            )}
+            {isTyping && activeRecipient && (
+              <div className="flex gap-2.5 items-center">
+                <img
+                  src={activeRecipient.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"}
+                  alt={activeRecipient.name}
+                  className="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-300"
+                />
+                <div className="p-2.5 bg-white border border-slate-200 rounded-xl rounded-bl-none text-slate-600 text-[11px] flex items-center gap-2 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping"></span>
+                  <span className="font-medium">{activeRecipient.name} is typing a reply...</span>
+                </div>
+              </div>
             )}
             <div ref={messagesEndRef} />
           </div>
@@ -575,7 +663,16 @@ export const MessagingView: React.FC = () => {
 
         {/* Column 3: Context Panel (Student Performance & Details) */}
         {activeRecipient && showStudentContext && (
-          <div className="w-full md:w-64 border-l border-slate-200 bg-slate-50 p-4 shrink-0 flex flex-col gap-4 overflow-y-auto">
+          <div className={`w-full md:w-64 border-l border-slate-200 bg-slate-50 p-4 shrink-0 flex-col gap-4 overflow-y-auto ${mobileView === 'info' ? 'flex flex-1 h-full' : 'hidden lg:flex'}`}>
+            <div className="md:hidden flex items-center justify-between border-b border-slate-200 pb-2.5">
+              <span className="font-bold text-xs text-slate-800">Student & Contact Details</span>
+              <button
+                onClick={() => setMobileView('chat')}
+                className="text-xs font-bold text-blue-600 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" /> Back to Chat
+              </button>
+            </div>
             <div>
               <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2">
                 Contextual Details

@@ -2,15 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { Notice } from '../../types';
 import { api } from '../../lib/api';
 import { Modal } from '../common/Modal';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { useAuth } from '../../context/AuthContext';
 import { useOnlineStatus } from '../../lib/offlineStorage';
-import { Bell, Plus, Sparkles, Calendar, Tag, WifiOff } from 'lucide-react';
+import { Bell, Plus, Sparkles, Calendar, Tag, WifiOff, Trash2 } from 'lucide-react';
 
 export const NoticesView: React.FC = () => {
   const { user } = useAuth();
   const isOnline = useOnlineStatus();
   const [notices, setNotices] = useState<Notice[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteNoticeTarget, setDeleteNoticeTarget] = useState<Notice | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [form, setForm] = useState({
     title: '',
@@ -42,6 +45,20 @@ export const NoticesView: React.FC = () => {
     setIsModalOpen(false);
     setForm({ title: '', content: '', targetAudience: 'All', category: 'General' });
     await loadData();
+  };
+
+  const confirmDeleteNotice = async () => {
+    if (!deleteNoticeTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.deleteNotice(deleteNoticeTarget.id);
+      setDeleteNoticeTarget(null);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to delete notice:', err);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -80,9 +97,20 @@ export const NoticesView: React.FC = () => {
                 <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 font-semibold text-[10px]">
                   {n.category}
                 </span>
-                <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                  <Calendar className="w-3 h-3" /> {n.date}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                    <Calendar className="w-3 h-3" /> {n.date}
+                  </span>
+                  {(user?.role === 'admin' || user?.role === 'teacher') && (
+                    <button
+                      onClick={() => setDeleteNoticeTarget(n)}
+                      className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                      title="Delete Notice"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
               <h3 className="font-bold text-slate-900 text-sm">{n.title}</h3>
               <p className="text-xs text-slate-600 leading-relaxed">{n.content}</p>
@@ -160,6 +188,17 @@ export const NoticesView: React.FC = () => {
           </button>
         </form>
       </Modal>
+
+      {/* Confirm Delete Notice Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!deleteNoticeTarget}
+        onClose={() => setDeleteNoticeTarget(null)}
+        onConfirm={confirmDeleteNotice}
+        title="Delete Official Notice"
+        itemName={deleteNoticeTarget?.title}
+        description={`Are you sure you want to delete notice "${deleteNoticeTarget?.title || ''}"? This will remove it from the school noticeboard.`}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

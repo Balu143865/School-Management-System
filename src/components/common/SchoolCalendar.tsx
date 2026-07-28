@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { CalendarEvent, Exam } from '../../types';
 
 export const SchoolCalendar: React.FC = () => {
@@ -45,6 +46,8 @@ export const SchoolCalendar: React.FC = () => {
   
   // Modals
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [deleteEventTarget, setDeleteEventTarget] = useState<CalendarEvent | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [selectedDayForNewEvent, setSelectedDayForNewEvent] = useState<string>('');
 
@@ -221,15 +224,19 @@ export const SchoolCalendar: React.FC = () => {
     }
   };
 
-  const handleDeleteEvent = async (id: string) => {
-    if (!confirm('Are you sure you want to remove this event from the calendar?')) return;
+  const confirmDeleteEvent = async () => {
+    if (!deleteEventTarget) return;
+    setIsDeleting(true);
     try {
-      await api.deleteCalendarEvent(id);
-      setEvents((prev) => prev.filter((e) => e.id !== id));
+      await api.deleteCalendarEvent(deleteEventTarget.id);
+      setEvents((prev) => prev.filter((e) => e.id !== deleteEventTarget.id));
       setSelectedEvent(null);
+      setDeleteEventTarget(null);
       showToast('Event removed from calendar.');
     } catch (err) {
       console.error('Failed to delete calendar event:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -420,18 +427,18 @@ export const SchoolCalendar: React.FC = () => {
       )}
 
       {/* Header Banner - Compact */}
-      <div className="bg-[#0F172A] p-3.5 sm:p-4 rounded-2xl text-white shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+      <div className="bg-[#0F172A] p-2.5 sm:p-4 rounded-2xl text-white shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
         <div>
-          <div className="flex items-center gap-2 text-blue-400 text-xs font-bold uppercase tracking-wider mb-0.5">
+          <div className="flex items-center gap-1.5 text-blue-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-0.5">
             <CalendarIcon className="w-3.5 h-3.5 text-amber-400" /> Greenwood Academic Calendar
           </div>
-          <h2 className="text-base sm:text-lg font-bold tracking-tight">Schedule & Event Planner</h2>
-          <p className="text-[11px] text-slate-300">
+          <h2 className="text-sm sm:text-lg font-bold tracking-tight">Schedule & Event Planner</h2>
+          <p className="hidden sm:block text-[11px] text-slate-300">
             Exams, holidays, classes, and academic events calendar synced with ExamManager.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
           {/* Quick Stats Badges */}
           <div className="hidden sm:flex items-center gap-2 bg-slate-800/80 px-2.5 py-1 rounded-xl border border-slate-700 text-[11px] font-semibold">
             <span className="flex items-center gap-1 text-amber-400">
@@ -453,11 +460,11 @@ export const SchoolCalendar: React.FC = () => {
           <button
             onClick={handleSyncExams}
             disabled={isSyncing}
-            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+            className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 rounded-xl text-xs font-extrabold flex items-center gap-1 transition shadow-xs cursor-pointer shrink-0"
             title="Auto-import exam schedules from ExamManager"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            <span>{isSyncing ? 'Syncing...' : 'Sync Exam Dates'}</span>
+            <span>{isSyncing ? 'Syncing...' : 'Sync Exams'}</span>
           </button>
 
           {(user?.role === 'admin' || user?.role === 'teacher') && (
@@ -466,20 +473,20 @@ export const SchoolCalendar: React.FC = () => {
                 setSelectedDayForNewEvent(new Date().toISOString().slice(0, 10));
                 setIsAddModalOpen(true);
               }}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs"
+              className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 transition shadow-xs shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Create Event</span>
+              <span>Create</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Control Bar: Date Selector, View Toggle, Category Filters */}
-      <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
         {/* Date Month / Week Selector */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+        <div className="flex items-center justify-between sm:justify-start gap-2">
+          <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100 p-0.5 sm:p-1 rounded-xl">
             <button
               onClick={prevPeriod}
               className="p-1 hover:bg-white text-slate-700 rounded-lg transition shadow-2xs"
@@ -489,7 +496,7 @@ export const SchoolCalendar: React.FC = () => {
             </button>
             <button
               onClick={jumpToToday}
-              className="px-2.5 py-1 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-2xs flex items-center gap-1"
+              className="px-2 py-1 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-2xs flex items-center gap-1"
             >
               <CheckCircle2 className="w-3 h-3" />
               <span>Today</span>
@@ -503,7 +510,15 @@ export const SchoolCalendar: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
+          <h3 className="text-xs sm:text-base font-bold text-slate-900 truncate">
+            {viewMode === 'month' ? (
+              `${monthNames[month]} ${year}`
+            ) : (
+              `Week of ${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+            )}
+          </h3>
+
+          <div className="hidden sm:flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
             <span className="text-[10px] font-semibold text-slate-500">Go to:</span>
             <input
               type="date"
@@ -518,23 +533,15 @@ export const SchoolCalendar: React.FC = () => {
               title="Select any custom date"
             />
           </div>
-
-          <h3 className="text-sm sm:text-base font-bold text-slate-900 min-w-[140px]">
-            {viewMode === 'month' ? (
-              `${monthNames[month]} ${year}`
-            ) : (
-              `Week of ${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-            )}
-          </h3>
         </div>
 
         {/* View Mode Toggle & Category Filters */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5 sm:pb-0">
           {/* View Mode Switcher */}
-          <div className="flex items-center p-0.5 bg-slate-100 rounded-xl border border-slate-200/60">
+          <div className="flex items-center p-0.5 bg-slate-100 rounded-xl border border-slate-200/60 shrink-0">
             <button
               onClick={() => setViewMode('month')}
-              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
+              className={`px-2 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
                 viewMode === 'month'
                   ? 'bg-white text-slate-900 shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -545,7 +552,7 @@ export const SchoolCalendar: React.FC = () => {
             </button>
             <button
               onClick={() => setViewMode('week')}
-              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
+              className={`px-2 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
                 viewMode === 'week'
                   ? 'bg-white text-slate-900 shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -560,7 +567,7 @@ export const SchoolCalendar: React.FC = () => {
           <select
             value={categoryFilter}
             onChange={e => setCategoryFilter(e.target.value)}
-            className="p-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-blue-500"
+            className="p-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-blue-500 shrink-0"
           >
             <option value="all">All Categories</option>
             <option value="exam">Exams & Tests</option>
@@ -571,7 +578,7 @@ export const SchoolCalendar: React.FC = () => {
           </select>
 
           {/* Search Bar */}
-          <div className="relative flex-1 sm:w-40">
+          <div className="relative min-w-[110px] sm:w-40 flex-1">
             <Search className="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5" />
             <input
               type="text"
@@ -584,46 +591,36 @@ export const SchoolCalendar: React.FC = () => {
         </div>
       </div>
 
-      {/* Category Legend Bar with Exam Color Differentiation */}
-      <div className="bg-white dark:bg-slate-900 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs flex flex-wrap items-center justify-between gap-2.5 text-[11px] text-slate-600 dark:text-slate-400">
-        <div className="flex flex-wrap items-center gap-3 font-medium">
-          <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-            <Palette className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Color Legend:
+      {/* Category Legend Bar - Compact for Mobile */}
+      <div className="bg-white dark:bg-slate-900 p-2 sm:p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-400">
+        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-0.5 sm:pb-0 scrollbar-none">
+          <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1 shrink-0">
+            <Palette className="w-3 h-3 text-blue-600" /> Legend:
           </span>
-          {/* Exam Color Coding Badges */}
-          <div className="flex flex-wrap items-center gap-2 bg-amber-50/90 dark:bg-amber-950/40 px-2 py-0.5 rounded-lg border border-amber-200/80 dark:border-amber-900/50">
-            <span className="font-bold text-amber-900 dark:text-amber-300 text-[10px] uppercase tracking-wider">Exams:</span>
-            <span className="flex items-center gap-1" title="Final Exams">
-              <span className="w-2 h-2 rounded-full bg-red-500"></span> Final (Red)
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="flex items-center gap-1 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300 px-1.5 py-0.5 rounded font-bold border border-red-200/60" title="Final Exam">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Final
             </span>
-            <span className="flex items-center gap-1" title="Midterm Exams">
-              <span className="w-2 h-2 rounded-full bg-rose-500"></span> Midterm (Rose)
+            <span className="flex items-center gap-1 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 px-1.5 py-0.5 rounded font-bold border border-rose-200/60" title="Midterm Exam">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Midterm
             </span>
-            <span className="flex items-center gap-1" title="Unit Tests">
-              <span className="w-2 h-2 rounded-full bg-amber-500"></span> Unit Test (Amber)
+            <span className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold border border-amber-200/60" title="Unit Test">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Test
             </span>
-            <span className="flex items-center gap-1" title="Quizzes">
-              <span className="w-2 h-2 rounded-full bg-purple-500"></span> Quiz (Purple)
+            <span className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 rounded font-bold border border-emerald-200/60" title="School Holiday">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Holiday
+            </span>
+            <span className="flex items-center gap-1 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 px-1.5 py-0.5 rounded font-bold border border-blue-200/60" title="School Event">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Event
             </span>
           </div>
-
-          {/* School Holidays and General Events */}
-          <span className="flex items-center gap-1 font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-emerald-200/80 dark:border-emerald-900/50" title="School Holidays">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span> School Holidays (Mint Green)
-          </span>
-          <span className="flex items-center gap-1" title="School Events">
-            <span className="w-2 h-2 rounded-full bg-blue-500"></span> Events
-          </span>
-          <span className="flex items-center gap-1" title="Parent Meetings">
-            <span className="w-2 h-2 rounded-full bg-indigo-500"></span> Meetings
-          </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between w-full sm:w-auto gap-2 border-t sm:border-0 border-slate-100 pt-1 sm:pt-0">
           <button
             onClick={handleSyncExams}
             disabled={isSyncing}
-            className="text-amber-700 dark:text-amber-400 hover:text-amber-900 hover:bg-amber-50 dark:hover:bg-amber-950/50 px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition text-[11px] cursor-pointer"
+            className="text-amber-700 dark:text-amber-400 hover:text-amber-900 hover:bg-amber-50 dark:hover:bg-amber-950/50 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 transition text-[10px] cursor-pointer"
           >
             <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
             <span>Auto-Sync ExamManager</span>
@@ -636,17 +633,17 @@ export const SchoolCalendar: React.FC = () => {
 
       {/* ---------------- MONTHLY VIEW GRID ---------------- */}
       {viewMode === 'month' && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-x-auto">
-          <div className="min-w-[580px]">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-x-hidden w-full">
+          <div className="w-full">
             {/* Day Headers (Sun - Sat) */}
-            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-center text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider py-1.5">
-              <div>Sun</div>
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
+            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-center text-[10px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tight py-1.5">
+              <div><span className="sm:hidden">Sun</span><span className="hidden sm:inline">Sun</span></div>
+              <div><span className="sm:hidden">Mon</span><span className="hidden sm:inline">Mon</span></div>
+              <div><span className="sm:hidden">Tue</span><span className="hidden sm:inline">Tue</span></div>
+              <div><span className="sm:hidden">Wed</span><span className="hidden sm:inline">Wed</span></div>
+              <div><span className="sm:hidden">Thu</span><span className="hidden sm:inline">Thu</span></div>
+              <div><span className="sm:hidden">Fri</span><span className="hidden sm:inline">Fri</span></div>
+              <div><span className="sm:hidden">Sat</span><span className="hidden sm:inline">Sat</span></div>
             </div>
 
             {/* Calendar Cells - Compact Height */}
@@ -657,7 +654,7 @@ export const SchoolCalendar: React.FC = () => {
               return (
                 <div
                   key={`prev-${idx}`}
-                  className="bg-slate-50/50 dark:bg-slate-900/30 p-1.5 min-h-[64px] sm:min-h-[72px] text-slate-300 dark:text-slate-700 text-xs font-medium"
+                  className="bg-slate-50/50 dark:bg-slate-900/30 p-0.5 sm:p-1.5 min-h-[48px] sm:min-h-[72px] text-slate-300 dark:text-slate-700 text-[10px] sm:text-xs font-medium"
                 >
                   <span>{dayNum}</span>
                 </div>
@@ -674,14 +671,14 @@ export const SchoolCalendar: React.FC = () => {
               return (
                 <div
                   key={`day-${dayNum}`}
-                  className={`p-1.5 min-h-[64px] sm:min-h-[72px] bg-white dark:bg-slate-900 transition hover:bg-blue-50/20 dark:hover:bg-blue-900/10 relative group ${
-                    isToday ? 'bg-blue-50/60 dark:bg-blue-950/30 ring-2 ring-blue-500/80 z-10' : ''
+                  className={`p-0.5 sm:p-1.5 min-h-[48px] sm:min-h-[72px] bg-white dark:bg-slate-900 transition hover:bg-blue-50/20 dark:hover:bg-blue-900/10 relative group overflow-hidden ${
+                    isToday ? 'bg-blue-50/60 dark:bg-blue-950/30 ring-1.5 sm:ring-2 ring-blue-500/80 z-10' : ''
                   }`}
                 >
                   {/* Day Header */}
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-0.5 sm:mb-1">
                     <span
-                      className={`text-xs font-bold inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded-full ${
+                      className={`text-[10px] sm:text-xs font-bold inline-flex items-center justify-center min-w-[18px] sm:min-w-[22px] h-4 sm:h-5 px-0.5 sm:px-1 rounded-full ${
                         isToday
                           ? 'bg-blue-600 text-white shadow-2xs font-extrabold'
                           : 'text-slate-800 dark:text-slate-200'
@@ -691,7 +688,7 @@ export const SchoolCalendar: React.FC = () => {
                     </span>
 
                     {isToday && (
-                      <span className="text-[9px] font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider bg-blue-100 dark:bg-blue-950 px-1 rounded">
+                      <span className="hidden sm:inline text-[9px] font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider bg-blue-100 dark:bg-blue-950 px-1 rounded">
                         Today
                       </span>
                     )}
@@ -703,7 +700,7 @@ export const SchoolCalendar: React.FC = () => {
                           setNewEvent(prev => ({ ...prev, date: dateKey }));
                           setIsAddModalOpen(true);
                         }}
-                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-600 p-0.5 rounded transition"
+                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-600 p-0.5 rounded transition hidden sm:inline-block"
                         title="Add event on this date"
                       >
                         <Plus className="w-3 h-3" />
@@ -717,12 +714,12 @@ export const SchoolCalendar: React.FC = () => {
                       <div
                         key={evt.id}
                         onClick={() => setSelectedEvent(evt)}
-                        className={`px-1 py-0.5 rounded text-[10px] font-semibold border cursor-pointer truncate shadow-2xs transition flex items-center gap-1 ${getEventBadgeStyle(
+                        className={`px-0.5 sm:px-1 py-0.2 sm:py-0.5 rounded text-[8px] sm:text-[10px] font-semibold border cursor-pointer truncate shadow-2xs transition flex items-center gap-0.5 sm:gap-1 leading-tight ${getEventBadgeStyle(
                           evt
                         )}`}
                         title={`${evt.title} (${evt.startTime || 'All Day'})`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${getEventDotColor(evt)}`} />
+                        <span className={`w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full shrink-0 ${getEventDotColor(evt)}`} />
                         <span className="truncate">{evt.title}</span>
                       </div>
                     ))}
@@ -732,7 +729,7 @@ export const SchoolCalendar: React.FC = () => {
                         onClick={() => {
                           setSelectedEvent(dayEvents[2]);
                         }}
-                        className="w-full text-center text-[9px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded py-0.5 border border-blue-200 transition"
+                        className="w-full text-center text-[8px] sm:text-[9px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded py-0.2 sm:py-0.5 border border-blue-200 transition truncate"
                       >
                         +{dayEvents.length - 2} more
                       </button>
@@ -748,7 +745,7 @@ export const SchoolCalendar: React.FC = () => {
             }).map((_, idx) => (
               <div
                 key={`next-${idx}`}
-                className="bg-slate-50/50 p-1.5 min-h-[64px] sm:min-h-[72px] text-slate-300 text-xs font-medium"
+                className="bg-slate-50/50 p-0.5 sm:p-1.5 min-h-[48px] sm:min-h-[72px] text-slate-300 text-[10px] sm:text-xs font-medium"
               >
                 <span>{idx + 1}</span>
               </div>
@@ -926,8 +923,8 @@ export const SchoolCalendar: React.FC = () => {
             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
               {(user?.role === 'admin' || user?.role === 'teacher') ? (
                 <button
-                  onClick={() => handleDeleteEvent(selectedEvent.id)}
-                  className="px-3 py-2 text-red-600 hover:bg-red-50 text-xs font-bold rounded-xl flex items-center gap-1.5 transition"
+                  onClick={() => setDeleteEventTarget(selectedEvent)}
+                  className="px-3 py-2 text-red-600 hover:bg-red-50 text-xs font-bold rounded-xl flex items-center gap-1.5 transition cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>Delete Event</span>
@@ -1135,6 +1132,17 @@ export const SchoolCalendar: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Confirm Delete Event Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!deleteEventTarget}
+        onClose={() => setDeleteEventTarget(null)}
+        onConfirm={confirmDeleteEvent}
+        title="Delete Calendar Event"
+        itemName={deleteEventTarget?.title}
+        description={`Are you sure you want to remove "${deleteEventTarget?.title || ''}" from the school calendar?`}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

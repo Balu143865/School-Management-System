@@ -353,8 +353,12 @@ const DEFAULT_NOTICES: Notice[] = [
 ];
 
 const DEFAULT_MATERIALS: StudyMaterial[] = [
-  { id: "mat-1", title: "Algebraic Formulas Cheat Sheet", description: "Comprehensive reference guide for quadratic equations, polynomials, and logarithms.", subjectName: "Mathematics", className: "Class 10-A", category: "Notes", fileUrl: "#", fileName: "Math_Formulas_2026.pdf", uploadedBy: "Prof. Robert Langdon", uploadDate: "2026-07-20" },
-  { id: "mat-2", title: "Physics Kinematics Worksheet 1", description: "Practice problems covering velocity, acceleration, and projectile motion.", subjectName: "Physics", className: "Class 10-A", category: "Worksheet", fileUrl: "#", fileName: "Kinematics_Worksheet.pdf", uploadedBy: "Prof. Robert Langdon", uploadDate: "2026-07-22" }
+  { id: "mat-1", title: "Algebraic Formulas & Logarithms Cheat Sheet", description: "Comprehensive reference guide for quadratic equations, polynomial theorems, logarithmic expansions, and exponent rules.", subjectName: "Mathematics", className: "Class 10-A", category: "Notes", fileUrl: "#", fileName: "Math_Formulas_2026.pdf", uploadedBy: "Prof. Robert Langdon", uploadDate: "2026-07-20" },
+  { id: "mat-2", title: "Physics Kinematics & Motion Worksheet", description: "Practice problems covering velocity, acceleration vectors, equations of motion, and projectile trajectory calculations.", subjectName: "Physics", className: "Class 10-A", category: "Worksheet", fileUrl: "#", fileName: "Kinematics_Worksheet.pdf", uploadedBy: "Dr. Alan Grant", uploadDate: "2026-07-22" },
+  { id: "mat-3", title: "Organic Chemistry Reactions & Functional Groups", description: "Quick revision notes on reaction mechanisms, functional groups, IUPAC nomenclature, and stoichiometry formulas.", subjectName: "Chemistry", className: "Class 10-A", category: "Notes", fileUrl: "#", fileName: "Organic_Chemistry_Guide.pdf", uploadedBy: "Dr. Marie Curie", uploadDate: "2026-07-23" },
+  { id: "mat-4", title: "Cellular Biology & Genetics Summary", description: "Detailed diagrams and notes covering organelle functions, DNA replication steps, and Mendelian inheritance crosses.", subjectName: "Biology", className: "Class 10-B", category: "PDF", fileUrl: "#", fileName: "Biology_Genetics_Notes.pdf", uploadedBy: "Prof. Gregor Mendel", uploadDate: "2026-07-24" },
+  { id: "mat-5", title: "Python Data Structures & Algorithm Complexity", description: "Cheatsheet on lists, dictionaries, stacks, queues, and Big-O time complexity analysis with code examples.", subjectName: "Computer Science", className: "Class 10-A", category: "Notes", fileUrl: "#", fileName: "Python_DSA_Cheatsheet.pdf", uploadedBy: "Prof. Ada Lovelace", uploadDate: "2026-07-25" },
+  { id: "mat-6", title: "Class 10 Board Exam Physics Model Question Paper", description: "Previous year board examination paper with complete answer key and step-by-step numerical solutions.", subjectName: "Physics", className: "Class 10-A", category: "Previous Paper", fileUrl: "#", fileName: "Physics_Model_Paper_2026.pdf", uploadedBy: "Dr. Alan Grant", uploadDate: "2026-07-26" }
 ];
 
 const DEFAULT_MESSAGES: ChatMessage[] = [
@@ -706,6 +710,12 @@ class DBStore {
     return newSubject;
   }
 
+  deleteSubject(id: string): boolean {
+    this.data.subjects = this.data.subjects.filter(s => s.id !== id);
+    this.saveToFile();
+    return true;
+  }
+
   // --- Attendance ---
   getAttendance(filters?: { classId?: string; studentId?: string; date?: string }): AttendanceRecord[] {
     let records = this.data.attendance;
@@ -790,6 +800,12 @@ class DBStore {
     return newHw;
   }
 
+  deleteHomework(id: string): boolean {
+    this.data.homework = this.data.homework.filter(h => h.id !== id);
+    this.saveToFile();
+    return true;
+  }
+
   getSubmissions(homeworkId?: string, studentId?: string): HomeworkSubmission[] {
     let subs = this.data.submissions;
     if (homeworkId) subs = subs.filter(s => s.homeworkId === homeworkId);
@@ -835,6 +851,12 @@ class DBStore {
     this.data.exams.push(newExam);
     this.saveToFile();
     return newExam;
+  }
+
+  deleteExam(id: string): boolean {
+    this.data.exams = this.data.exams.filter(e => e.id !== id);
+    this.saveToFile();
+    return true;
   }
 
   getExamResults(examId?: string, studentId?: string): ExamResult[] {
@@ -885,6 +907,12 @@ class DBStore {
     return newNotice;
   }
 
+  deleteNotice(id: string): boolean {
+    this.data.notices = this.data.notices.filter(n => n.id !== id);
+    this.saveToFile();
+    return true;
+  }
+
   // --- Study Materials ---
   getStudyMaterials(): StudyMaterial[] {
     return this.data.studyMaterials;
@@ -898,6 +926,12 @@ class DBStore {
     this.data.studyMaterials.unshift(newMat);
     this.saveToFile();
     return newMat;
+  }
+
+  deleteStudyMaterial(id: string): boolean {
+    this.data.studyMaterials = this.data.studyMaterials.filter(m => m.id !== id);
+    this.saveToFile();
+    return true;
   }
 
   // --- Chat / Messages ---

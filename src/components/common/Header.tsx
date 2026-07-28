@@ -28,6 +28,7 @@ import { UserRole } from '../../types';
 import { DocumentScannerModal } from './DocumentScannerModal';
 import { NotificationTriggerHub } from './NotificationTriggerHub';
 import { FirebaseAuthModal } from './FirebaseAuthModal';
+import { GlobalSearchModal } from './GlobalSearchModal';
 
 interface HeaderProps {
   activeTab: string;
@@ -54,6 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [isNotifHubOpen, setIsNotifHubOpen] = useState(false);
   const [isFirebaseAuthOpen, setIsFirebaseAuthOpen] = useState(false);
   const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
+  const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     return (
@@ -121,15 +123,17 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Desktop Search input */}
-          <div className="relative w-full max-w-sm hidden md:block ml-2">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder={t('header.search', 'Search students, records, or AI tools...')}
-              className="w-full pl-8 pr-4 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 rounded-xl text-xs text-slate-800 dark:text-slate-200 outline-none transition-colors"
-            />
-          </div>
+          {/* Desktop Global Search Trigger */}
+          <button
+            onClick={() => setIsGlobalSearchOpen(true)}
+            className="relative w-full max-w-sm hidden md:flex items-center justify-between pl-8 pr-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-500 dark:text-slate-400 text-left transition cursor-pointer ml-2 group"
+          >
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-blue-500 transition" />
+            <span className="truncate">{t('header.search', 'Search students, teachers, pages...')}</span>
+            <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[10px] font-medium text-slate-400 shadow-2xs shrink-0 ml-2">
+              ⌘K
+            </kbd>
+          </button>
         </div>
 
         {/* Right Section: Controls & Tools */}
@@ -337,14 +341,19 @@ export const Header: React.FC<HeaderProps> = ({
       {isMobileToolsOpen && (
         <div className="lg:hidden border-t border-slate-200 dark:border-slate-800 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md p-3 space-y-3 shadow-inner animate-in slide-in-from-top-2 duration-200">
           {/* Mobile Search Bar */}
-          <div className="relative w-full">
+          <button
+            onClick={() => {
+              setIsGlobalSearchOpen(true);
+              setIsMobileToolsOpen(false);
+            }}
+            className="relative w-full flex items-center justify-between pl-8 pr-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-500 dark:text-slate-400 text-left transition cursor-pointer"
+          >
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder={t('header.search', 'Search students, records, or AI tools...')}
-              className="w-full pl-8 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500"
-            />
-          </div>
+            <span className="truncate">{t('header.search', 'Search students, teachers, pages...')}</span>
+            <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-[10px] text-slate-400">
+              ⌘K
+            </kbd>
+          </button>
 
           {/* Quick Tools Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
@@ -451,6 +460,16 @@ export const Header: React.FC<HeaderProps> = ({
       <FirebaseAuthModal
         isOpen={isFirebaseAuthOpen}
         onClose={() => setIsFirebaseAuthOpen(false)}
+      />
+
+      {/* Global Search Command Palette Modal */}
+      <GlobalSearchModal
+        isOpen={isGlobalSearchOpen}
+        onClose={() => setIsGlobalSearchOpen(false)}
+        setActiveTab={setActiveTab}
+        onOpenScanner={() => setIsScannerOpen(true)}
+        onOpenReminders={() => setIsNotifHubOpen(true)}
+        onOpenSchoolRegister={onOpenSchoolRegister}
       />
     </header>
   );

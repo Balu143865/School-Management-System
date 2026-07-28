@@ -37,9 +37,16 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     return { id: 'notices', label: t('nav.notices', 'Notices'), icon: Bell };
   };
 
-  const fourthTab = getFourthTab();
+  interface NavItem {
+    id: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    highlight?: boolean;
+  }
 
-  const navItems = [
+  const fourthTab: NavItem = getFourthTab();
+
+  const navItems: NavItem[] = [
     { id: 'dashboard', label: t('nav.dashboard', 'Home'), icon: LayoutDashboard },
     { id: 'calendar', label: t('nav.calendar', 'Calendar'), icon: Calendar },
     { id: 'ai-assistant', label: t('nav.aiAssistant', 'AI Suite'), icon: Sparkles, highlight: true },

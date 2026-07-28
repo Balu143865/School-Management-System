@@ -3,6 +3,7 @@ import { User, ClassRoom } from '../../types';
 import { api } from '../../lib/api';
 import { DataTable, Column } from '../common/DataTable';
 import { Modal } from '../common/Modal';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { UserCheck, Trash2, Upload, Image as ImageIcon, X } from 'lucide-react';
 
 const PRESET_AVATARS = [
@@ -17,6 +18,8 @@ export const TeacherManagement: React.FC = () => {
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -79,10 +82,17 @@ export const TeacherManagement: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to remove this faculty record?')) {
-      await api.deleteUser(id);
+  const confirmDeleteTeacher = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.deleteUser(deleteTarget.id);
+      setDeleteTarget(null);
       await loadData();
+    } catch (err) {
+      console.error('Failed to remove faculty:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -129,13 +139,24 @@ export const TeacherManagement: React.FC = () => {
         addLabel="Add Faculty Member"
         actions={(item) => (
           <button
-            onClick={() => handleDelete(item.id)}
-            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-            title="Delete"
+            onClick={() => setDeleteTarget(item)}
+            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+            title="Delete Faculty Member"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         )}
+      />
+
+      {/* Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteTeacher}
+        title="Delete Faculty Member"
+        itemName={deleteTarget?.name}
+        description={`Are you sure you want to remove ${deleteTarget?.name || 'this teacher'} from the faculty registry?`}
+        isLoading={isDeleting}
       />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Faculty Member">

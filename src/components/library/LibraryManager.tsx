@@ -20,6 +20,7 @@ import {
 import { Book, BookBorrowing, User } from '../../types';
 import { api } from '../../lib/api';
 import { Modal } from '../common/Modal';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { useAuth } from '../../context/AuthContext';
 
 export const LibraryManager: React.FC = () => {
@@ -39,6 +40,8 @@ export const LibraryManager: React.FC = () => {
   const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [selectedBookForCheckout, setSelectedBookForCheckout] = useState<Book | null>(null);
+  const [deleteBookTarget, setDeleteBookTarget] = useState<Book | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form State - New Book
   const [newBook, setNewBook] = useState({
@@ -195,14 +198,17 @@ export const LibraryManager: React.FC = () => {
     }
   };
 
-  const handleDeleteBook = async (id: string, title: string) => {
-    if (confirm(`Are you sure you want to remove "${title}" from the library catalog?`)) {
-      try {
-        await api.deleteBook(id);
-        setBooks(prev => prev.filter(b => b.id !== id));
-      } catch (err) {
-        console.error('Error deleting book:', err);
-      }
+  const confirmDeleteBook = async () => {
+    if (!deleteBookTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.deleteBook(deleteBookTarget.id);
+      setBooks(prev => prev.filter(b => b.id !== deleteBookTarget.id));
+      setDeleteBookTarget(null);
+    } catch (err) {
+      console.error('Error deleting book:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -443,8 +449,8 @@ export const LibraryManager: React.FC = () => {
                         Issue
                       </button>
                       <button
-                        onClick={() => handleDeleteBook(book.id, book.title)}
-                        className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        onClick={() => setDeleteBookTarget(book)}
+                        className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                         title="Delete Book"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -701,6 +707,17 @@ export const LibraryManager: React.FC = () => {
           </button>
         </form>
       </Modal>
+
+      {/* Confirm Delete Book Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!deleteBookTarget}
+        onClose={() => setDeleteBookTarget(null)}
+        onConfirm={confirmDeleteBook}
+        title="Delete Library Book"
+        itemName={deleteBookTarget?.title}
+        description={`Are you sure you want to permanently remove "${deleteBookTarget?.title || ''}" from the library catalog?`}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

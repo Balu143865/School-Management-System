@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Homework, HomeworkSubmission, ClassRoom, Subject } from '../../types';
 import { api } from '../../lib/api';
 import { Modal } from '../common/Modal';
-import { FileText, Plus, CheckCircle2, Award, ExternalLink, Camera } from 'lucide-react';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
+import { FileText, Plus, CheckCircle2, Award, ExternalLink, Camera, Trash2 } from 'lucide-react';
 import { DocumentScannerModal } from '../common/DocumentScannerModal';
 
 export const HomeworkManager: React.FC = () => {
@@ -16,6 +17,8 @@ export const HomeworkManager: React.FC = () => {
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [selectedSub, setSelectedSub] = useState<HomeworkSubmission | null>(null);
+  const [deleteHwTarget, setDeleteHwTarget] = useState<Homework | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [hwForm, setHwForm] = useState({
     title: '',
@@ -82,6 +85,20 @@ export const HomeworkManager: React.FC = () => {
     await loadData();
   };
 
+  const confirmDeleteHomework = async () => {
+    if (!deleteHwTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.deleteHomework(deleteHwTarget.id);
+      setDeleteHwTarget(null);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to delete homework task:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -123,9 +140,18 @@ export const HomeworkManager: React.FC = () => {
               <div key={hw.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-900 text-sm">{hw.title}</span>
-                  <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold text-[10px]">
-                    {hw.subjectName}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold text-[10px]">
+                      {hw.subjectName}
+                    </span>
+                    <button
+                      onClick={() => setDeleteHwTarget(hw)}
+                      className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                      title="Delete Homework Task"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
                 <p className="text-slate-600">{hw.description}</p>
                 <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-200/60">
@@ -316,6 +342,17 @@ export const HomeworkManager: React.FC = () => {
         onClose={() => setIsScannerOpen(false)}
         documentType="assignment"
         documentTitle="Teacher_Assignment_Permission_Slip"
+      />
+
+      {/* Confirm Delete Homework Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!deleteHwTarget}
+        onClose={() => setDeleteHwTarget(null)}
+        onConfirm={confirmDeleteHomework}
+        title="Delete Homework Task"
+        itemName={deleteHwTarget?.title}
+        description={`Are you sure you want to delete assignment "${deleteHwTarget?.title || ''}"? This will remove the task for all students.`}
+        isLoading={isDeleting}
       />
     </div>
   );

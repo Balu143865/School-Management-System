@@ -180,6 +180,11 @@ app.post('/api/subjects', (req, res) => {
   res.status(201).json(sub);
 });
 
+app.delete('/api/subjects/:id', (req, res) => {
+  db.deleteSubject(req.params.id);
+  res.json({ success: true });
+});
+
 // 6. Attendance
 app.get('/api/attendance', (req, res) => {
   const { classId, studentId, date } = req.query;
@@ -228,6 +233,11 @@ app.post('/api/homework', (req, res) => {
   res.status(201).json(hw);
 });
 
+app.delete('/api/homework/:id', (req, res) => {
+  db.deleteHomework(req.params.id);
+  res.json({ success: true });
+});
+
 app.get('/api/homework/submissions', (req, res) => {
   const { homeworkId, studentId } = req.query;
   res.json(db.getSubmissions(homeworkId as string, studentId as string));
@@ -254,6 +264,11 @@ app.get('/api/exams', (req, res) => {
 app.post('/api/exams', (req, res) => {
   const exam = db.addExam(req.body);
   res.status(201).json(exam);
+});
+
+app.delete('/api/exams/:id', (req, res) => {
+  db.deleteExam(req.params.id);
+  res.json({ success: true });
 });
 
 app.get('/api/exams/results', (req, res) => {
@@ -287,6 +302,11 @@ app.post('/api/notices', (req, res) => {
   res.status(201).json(notice);
 });
 
+app.delete('/api/notices/:id', (req, res) => {
+  db.deleteNotice(req.params.id);
+  res.json({ success: true });
+});
+
 // 12. Study Materials
 app.get('/api/study-materials', (req, res) => {
   res.json(db.getStudyMaterials());
@@ -295,6 +315,11 @@ app.get('/api/study-materials', (req, res) => {
 app.post('/api/study-materials', (req, res) => {
   const mat = db.addStudyMaterial(req.body);
   res.status(201).json(mat);
+});
+
+app.delete('/api/study-materials/:id', (req, res) => {
+  db.deleteStudyMaterial(req.params.id);
+  res.json({ success: true });
 });
 
 // 13. Real-Time Chat / Communication

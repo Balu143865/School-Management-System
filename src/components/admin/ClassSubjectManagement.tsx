@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ClassRoom, Subject, User } from '../../types';
 import { api } from '../../lib/api';
 import { Modal } from '../common/Modal';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { BookOpen, Plus, Trash2, Building } from 'lucide-react';
 
 export const ClassSubjectManagement: React.FC = () => {
@@ -12,6 +13,9 @@ export const ClassSubjectManagement: React.FC = () => {
 
   const [isClassModalOpen, setIsClassModalOpen] = useState(false);
   const [isSubModalOpen, setIsSubModalOpen] = useState(false);
+  const [deleteClassTarget, setDeleteClassTarget] = useState<ClassRoom | null>(null);
+  const [deleteSubTarget, setDeleteSubTarget] = useState<Subject | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [classForm, setClassForm] = useState({
     name: 'Class 11',
@@ -75,10 +79,31 @@ export const ClassSubjectManagement: React.FC = () => {
     await loadData();
   };
 
-  const handleDeleteClass = async (id: string) => {
-    if (confirm('Delete classroom record?')) {
-      await api.deleteClass(id);
+  const confirmDeleteClass = async () => {
+    if (!deleteClassTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.deleteClass(deleteClassTarget.id);
+      setDeleteClassTarget(null);
       await loadData();
+    } catch (err) {
+      console.error('Failed to delete class:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const confirmDeleteSubject = async () => {
+    if (!deleteSubTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.deleteSubject(deleteSubTarget.id);
+      setDeleteSubTarget(null);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to delete subject:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -128,8 +153,9 @@ export const ClassSubjectManagement: React.FC = () => {
                     {cls.studentCount} Students
                   </span>
                   <button
-                    onClick={() => handleDeleteClass(cls.id)}
-                    className="p-1 text-slate-400 hover:text-red-600 transition"
+                    onClick={() => setDeleteClassTarget(cls)}
+                    className="p-1 text-slate-400 hover:text-red-600 transition cursor-pointer"
+                    title="Delete Class"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -168,14 +194,45 @@ export const ClassSubjectManagement: React.FC = () => {
                     {sub.className} • Instructor: <span className="text-slate-700 font-medium">{sub.teacherName}</span>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[10px]">
-                  Active Course
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[10px]">
+                    Active Course
+                  </span>
+                  <button
+                    onClick={() => setDeleteSubTarget(sub)}
+                    className="p-1 text-slate-400 hover:text-red-600 transition cursor-pointer"
+                    title="Delete Subject"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      {/* Confirm Delete Class Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!deleteClassTarget}
+        onClose={() => setDeleteClassTarget(null)}
+        onConfirm={confirmDeleteClass}
+        title="Delete Class Room"
+        itemName={deleteClassTarget ? `${deleteClassTarget.name} - Section ${deleteClassTarget.section}` : ''}
+        description="Are you sure you want to delete this classroom? Students assigned to this class may need to be re-assigned."
+        isLoading={isDeleting}
+      />
+
+      {/* Confirm Delete Subject Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!deleteSubTarget}
+        onClose={() => setDeleteSubTarget(null)}
+        onConfirm={confirmDeleteSubject}
+        title="Delete Subject Course"
+        itemName={deleteSubTarget?.name}
+        description={`Are you sure you want to remove subject "${deleteSubTarget?.name || ''}" from the curriculum?`}
+        isLoading={isDeleting}
+      />
 
       {/* Add Class Modal */}
       <Modal isOpen={isClassModalOpen} onClose={() => setIsClassModalOpen(false)} title="Create New Class Room">

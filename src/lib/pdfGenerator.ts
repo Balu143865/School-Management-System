@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { User, DashboardStats } from '../types';
+import { User, DashboardStats, StudyMaterial } from '../types';
 
 export interface StudentReportData {
   studentName: string;
@@ -417,6 +417,189 @@ export const generateExecutiveReportPDF = (stats: DashboardStats | null): jsPDF 
     },
     margin: { left: 12, right: 12 }
   });
+
+  drawFooter(doc, 1);
+
+  return doc;
+};
+
+/**
+ * Generate PDF Study Material Document with relative subject content
+ */
+export const generateStudyMaterialPDF = (mat: StudyMaterial): jsPDF => {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  // 1. Draw Official Header
+  drawLetterhead(doc, 'Study Resource');
+
+  // 2. Resource Banner Card
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(12, 32, 186, 28, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(15, 23, 42);
+  doc.text(mat.title, 16, 41);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text(mat.description || 'Official academic learning resource provided by faculty.', 16, 47, { maxWidth: 178 });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(124, 58, 237); // purple
+  doc.text(`Subject: ${mat.subjectName} | Category: ${mat.category} | Class: ${mat.className || 'Class 10-A'}`, 16, 55);
+
+  // 3. Resource Metadata Table
+  autoTable(doc, {
+    startY: 63,
+    head: [['Attribute', 'Details', 'Author / Faculty', 'Upload Date']],
+    body: [
+      ['Resource Title', mat.title, mat.uploadedBy || 'Faculty Member', mat.uploadDate || '2026-07-28'],
+      ['Subject & Grade', `${mat.subjectName} (${mat.className || 'Class 10-A'})`, 'Greenwood Academy', 'Verified Resource'],
+      ['Document Format', `${mat.category} (${mat.fileName || 'Resource.pdf'})`, 'Academic Repository', 'Active Distribution']
+    ],
+    theme: 'striped',
+    headStyles: {
+      fillColor: [124, 58, 237], // Purple
+      textColor: [255, 255, 255],
+      fontSize: 8.5,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 8.5,
+      textColor: [51, 65, 85]
+    },
+    margin: { left: 12, right: 12 }
+  });
+
+  let currentY = (doc as any).lastAutoTable.finalY + 8;
+
+  // 4. Relative Content Table according to Subject
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text('KEY SYLLABUS CONCEPTS & FORMULA REFERENCE', 12, currentY);
+
+  const subject = (mat.subjectName || '').toLowerCase();
+  let tableHead = [['Topic / Concept', 'Formula / Key Principle', 'Application / Usage Notes']];
+  let tableBody: string[][] = [];
+
+  if (subject.includes('math')) {
+    tableBody = [
+      ['Quadratic Formula', 'x = (-b ± √(b² - 4ac)) / 2a', 'Solves standard ax² + bx + c = 0 equations.'],
+      ['Polynomial Theorem', 'P(x) = (x - a)Q(x) + R', 'Remainder theorem for polynomial division.'],
+      ['Logarithm Rules', 'log(ab) = log(a) + log(b)', 'Simplifies exponential product calculations.'],
+      ['Pythagorean Identity', 'sin²(θ) + cos²(θ) = 1', 'Fundamental trigonometric identity.'],
+      ['Arithmetic Progression', 'a_n = a_1 + (n - 1)d', 'Calculates the nth term of a linear sequence.']
+    ];
+  } else if (subject.includes('physic')) {
+    tableBody = [
+      ['First Equation of Motion', 'v = u + at', 'Relates final velocity, initial velocity, acceleration, time.'],
+      ['Second Equation of Motion', 's = ut + ½at²', 'Calculates displacement with constant acceleration.'],
+      ['Newton\'s Second Law', 'F = ma', 'Force equals mass multiplied by acceleration.'],
+      ['Kinetic Energy', 'KE = ½mv²', 'Energy possessed by an object due to motion.'],
+      ['Ohm\'s Law', 'V = IR', 'Voltage equals current multiplied by resistance.']
+    ];
+  } else if (subject.includes('chemist')) {
+    tableBody = [
+      ['Ideal Gas Law', 'PV = nRT', 'Relates pressure, volume, moles, and temperature.'],
+      ['Molarity Formula', 'M = Moles of Solute / Liters of Solution', 'Concentration measurement in aqueous solutions.'],
+      ['pH Definition', 'pH = -log[H+]', 'Measures acidity or alkalinity of solutions.'],
+      ['Stoichiometry Ratio', 'aA + bB → cC + dD', 'Calculates reactant-product mole conversions.'],
+      ['Alkanes Formula', 'C_n H_(2n+2)', 'General formula for saturated hydrocarbons.']
+    ];
+  } else if (subject.includes('bio')) {
+    tableBody = [
+      ['Mitochondria Function', 'ATP Synthesis via Cellular Respiration', 'Powerhouse of the cell generating metabolic energy.'],
+      ['DNA Replication', 'Adenine-Thymine, Cytosine-Guanine', 'Base pairing rules for double-helix replication.'],
+      ['Photosynthesis Reaction', '6CO₂ + 6H₂O + Light → C₆H₁₂O₆ + 6O₂', 'Converts solar energy into chemical glucose energy.'],
+      ['Mendel\'s Monohybrid Ratio', '3:1 Phenotypic Ratio in F2 Generation', 'Dominant vs recessive single-trait inheritance.'],
+      ['Mitosis Stages', 'Prophase → Metaphase → Anaphase → Telophase', 'Somatic cell division producing identical daughter cells.']
+    ];
+  } else if (subject.includes('computer') || subject.includes('coding') || subject.includes('python')) {
+    tableBody = [
+      ['Array / List Lookup', 'O(1) Time Complexity', 'Direct index access in memory.'],
+      ['Binary Search', 'O(log N) Time Complexity', 'Dividing sorted search space repeatedly.'],
+      ['Queue Structure', 'FIFO (First-In, First-Out)', 'Used in task scheduling and messaging buffers.'],
+      ['Stack Structure', 'LIFO (Last-In, First-Out)', 'Used in call stack execution & recursion.'],
+      ['Recursion Requirement', 'Base Case + Recursive Step', 'Prevents infinite call loops.']
+    ];
+  } else {
+    tableBody = [
+      ['Core Concept 1', 'Fundamental Principles & Definitions', 'Key foundation for chapter examination.'],
+      ['Core Concept 2', 'Structured Framework & Analytical Method', 'Applied in problem solving.'],
+      ['Core Concept 3', 'Practical Example Application', 'Observed in real-world scenarios.'],
+      ['Core Concept 4', 'Synthesis & Critical Questions', 'Tested in past board examinations.']
+    ];
+  }
+
+  autoTable(doc, {
+    startY: currentY + 4,
+    head: tableHead,
+    body: tableBody,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [15, 23, 42],
+      textColor: [255, 255, 255],
+      fontSize: 8.5,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 8.5,
+      textColor: [51, 65, 85]
+    },
+    margin: { left: 12, right: 12 }
+  });
+
+  currentY = (doc as any).lastAutoTable.finalY + 8;
+
+  // 5. Practice & Revision Exercises
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text('PRACTICE & SELF-ASSESSMENT QUESTIONS', 12, currentY);
+
+  autoTable(doc, {
+    startY: currentY + 4,
+    head: [['Q#', 'Question Description', 'Target Marks', 'Suggested Approach']],
+    body: [
+      ['Q1', `Explain the core principles of ${mat.title} with a neat diagram or step-by-step derivation.`, '5 Marks', 'Detail definitions, formulas, and state assumptions.'],
+      ['Q2', `Solve the numerical problem: Apply the formulas listed above for ${mat.subjectName} to solve for unknown variables.`, '4 Marks', 'Substitute given values into standard equation.'],
+      ['Q3', `Contrast and compare the key mechanisms outlined in this ${mat.category.toLowerCase()} document.`, '3 Marks', 'List 3 distinct point-by-point differences.']
+    ],
+    theme: 'striped',
+    headStyles: {
+      fillColor: [37, 99, 235],
+      textColor: [255, 255, 255],
+      fontSize: 8.5,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 8.5,
+      textColor: [51, 65, 85]
+    },
+    margin: { left: 12, right: 12 }
+  });
+
+  currentY = (doc as any).lastAutoTable.finalY + 12;
+
+  // Sign-off box
+  doc.setDrawColor(226, 232, 240);
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(12, currentY, 186, 20, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(15, 23, 42);
+  doc.text('VERIFIED ACADEMIC RESOURCE', 16, currentY + 7);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Authorized by: ${mat.uploadedBy || 'Prof. Robert Langdon'} • Greenwood Enterprise Academy Academic Board`, 16, currentY + 13);
 
   drawFooter(doc, 1);
 
