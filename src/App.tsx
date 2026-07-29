@@ -41,9 +41,11 @@ import { OfflineBanner } from './components/common/OfflineBanner';
 import { PerformanceOverview } from './components/common/PerformanceOverview';
 import { LibraryManager } from './components/library/LibraryManager';
 import { KeyboardShortcutManager } from './components/common/KeyboardShortcutManager';
+import { SchoolLandingPage } from './components/common/SchoolLandingPage';
 
 function MainAppContent() {
   const { user } = useAuth();
+  const [isLandingPage, setIsLandingPage] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isRegisterSchoolOpen, setIsRegisterSchoolOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -52,7 +54,17 @@ function MainAppContent() {
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setIsMobileMenuOpen(false);
+    setIsLandingPage(false);
   };
+
+  const handleEnterDashboard = (role?: 'admin' | 'teacher' | 'student' | 'parent') => {
+    setIsLandingPage(false);
+    setActiveTab('dashboard');
+  };
+
+  if (isLandingPage) {
+    return <SchoolLandingPage onEnterDashboard={handleEnterDashboard} />;
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -142,7 +154,7 @@ function MainAppContent() {
   };
 
   return (
-    <div className="fixed inset-0 h-full w-full bg-[#F1F5F9] flex flex-col font-sans text-slate-800 selection:bg-blue-600 selection:text-white overflow-hidden">
+    <div className="fixed inset-0 h-full w-full bg-[#F1F5F9] dark:bg-slate-950 flex flex-col font-sans text-slate-800 dark:text-slate-100 selection:bg-blue-600 selection:text-white overflow-hidden transition-colors">
       <OfflineBanner />
       <Header
         activeTab={activeTab}
@@ -151,6 +163,7 @@ function MainAppContent() {
         isMobileMenuOpen={isMobileMenuOpen}
         onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         onOpenShortcuts={() => setIsShortcutsOpen(true)}
+        onGoToLandingPage={() => setIsLandingPage(true)}
       />
 
       <KeyboardShortcutManager
@@ -167,6 +180,7 @@ function MainAppContent() {
           setActiveTab={handleTabChange}
           isMobileOpen={isMobileMenuOpen}
           onCloseMobile={() => setIsMobileMenuOpen(false)}
+          onGoToLandingPage={() => setIsLandingPage(true)}
         />
 
         <main className="flex-1 p-3.5 sm:p-6 pb-16 lg:pb-6 overflow-y-auto overflow-x-hidden w-full max-w-full min-w-0 space-y-6">

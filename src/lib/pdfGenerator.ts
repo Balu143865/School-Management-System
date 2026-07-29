@@ -605,3 +605,176 @@ export const generateStudyMaterialPDF = (mat: StudyMaterial): jsPDF => {
 
   return doc;
 };
+
+export interface AttendanceSummaryReportData {
+  className: string;
+  roomNumber: string;
+  classTeacherName: string;
+  date: string;
+  totalStudents: number;
+  presentCount: number;
+  absentCount: number;
+  lateCount: number;
+  excusedCount: number;
+  attendanceRate: number;
+  remarks?: string;
+  records: {
+    rollNo: string;
+    studentName: string;
+    studentId: string;
+    status: 'present' | 'absent' | 'late' | 'excused';
+  }[];
+}
+
+/**
+ * Generate PDF Daily Classroom Attendance Summary Report
+ */
+export const generateAttendanceSummaryPDF = (data: AttendanceSummaryReportData): jsPDF => {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  // 1. Draw Header
+  drawLetterhead(doc, 'Daily Attendance Summary');
+
+  // 2. Class Summary Meta Box
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(12, 32, 186, 26, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`Daily Attendance Summary: ${data.className}`, 16, 40);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Classroom: Room ${data.roomNumber || 'N/A'}  |  Class Teacher: ${data.classTeacherName || 'Faculty In-Charge'}`, 16, 46);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(37, 99, 235);
+  doc.text(`Attendance Date: ${data.date}  |  Overall Attendance Rate: ${data.attendanceRate.toFixed(1)}%`, 16, 52);
+
+  // 3. Key Metrics Table
+  autoTable(doc, {
+    startY: 61,
+    head: [['Total Enrolled', 'Present', 'Absent', 'Late', 'Excused', 'Attendance Rate']],
+    body: [
+      [
+        `${data.totalStudents} Students`,
+        `${data.presentCount} (${((data.presentCount / (data.totalStudents || 1)) * 100).toFixed(0)}%)`,
+        `${data.absentCount} (${((data.absentCount / (data.totalStudents || 1)) * 100).toFixed(0)}%)`,
+        `${data.lateCount} (${((data.lateCount / (data.totalStudents || 1)) * 100).toFixed(0)}%)`,
+        `${data.excusedCount} (${((data.excusedCount / (data.totalStudents || 1)) * 100).toFixed(0)}%)`,
+        `${data.attendanceRate.toFixed(1)}%`
+      ]
+    ],
+    theme: 'grid',
+    headStyles: {
+      fillColor: [15, 23, 42],
+      textColor: [255, 255, 255],
+      fontSize: 8.5,
+      fontStyle: 'bold',
+      halign: 'center'
+    },
+    bodyStyles: {
+      fontSize: 8.5,
+      textColor: [30, 41, 59],
+      fontStyle: 'bold',
+      halign: 'center'
+    },
+    margin: { left: 12, right: 12 }
+  });
+
+  let currentY = (doc as any).lastAutoTable.finalY + 8;
+
+  // 4. Student Attendance Roll List Table
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text('CLASSROOM ROLL CALL ROSTER', 12, currentY);
+
+  const tableBody = data.records.map(r => [
+    r.rollNo || '-',
+    r.studentName,
+    r.studentId || '-',
+    r.status.toUpperCase()
+  ]);
+
+  autoTable(doc, {
+    startY: currentY + 4,
+    head: [['Roll No', 'Student Name', 'Student ID', 'Attendance Status']],
+    body: tableBody,
+    theme: 'striped',
+    headStyles: {
+      fillColor: [37, 99, 235],
+      textColor: [255, 255, 255],
+      fontSize: 8.5,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 8.5,
+      textColor: [51, 65, 85]
+    },
+    didParseCell: (didParseData) => {
+      if (didParseData.section === 'body' && didParseData.column.index === 3) {
+        const val = didParseData.cell.raw as string;
+        if (val === 'PRESENT') {
+          didParseData.cell.styles.textColor = [16, 185, 129];
+          didParseData.cell.styles.fontStyle = 'bold';
+        } else if (val === 'ABSENT') {
+          didParseData.cell.styles.textColor = [225, 29, 72];
+          didParseData.cell.styles.fontStyle = 'bold';
+        } else if (val === 'LATE') {
+          didParseData.cell.styles.textColor = [217, 119, 6];
+          didParseData.cell.styles.fontStyle = 'bold';
+        } else if (val === 'EXCUSED') {
+          didParseData.cell.styles.textColor = [37, 99, 235];
+          didParseData.cell.styles.fontStyle = 'bold';
+        }
+      }
+    },
+    margin: { left: 12, right: 12 }
+  });
+
+  currentY = (doc as any).lastAutoTable.finalY + 8;
+
+  // Summary remarks if available
+  if (data.remarks) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42);
+    doc.text('TEACHER / FACULTY REMARKS:', 12, currentY);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text(data.remarks, 12, currentY + 5, { maxWidth: 186 });
+
+    currentY += 14;
+  }
+
+  // Sign-off verification
+  if (currentY + 22 > 270) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  doc.setDrawColor(226, 232, 240);
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(12, currentY, 186, 18, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text('OFFICIAL ACADEMIC ATTENDANCE AUDIT', 16, currentY + 6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Recorded By: ${data.classTeacherName || 'Class Teacher'} • Greenwood Enterprise Academy Student Affairs`, 16, currentY + 12);
+
+  drawFooter(doc, 1);
+
+  return doc;
+};

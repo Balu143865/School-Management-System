@@ -20,7 +20,8 @@ import {
   Calendar,
   ShieldCheck,
   TrendingUp,
-  X
+  X,
+  Globe
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -30,13 +31,15 @@ interface SidebarProps {
   setActiveTab: (tab: string) => void;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
+  onGoToLandingPage?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   setActiveTab,
   isMobileOpen,
-  onCloseMobile
+  onCloseMobile,
+  onGoToLandingPage
 }) => {
   const { role, user, schoolSettings } = useAuth();
   const { t } = useLanguage();
@@ -154,6 +157,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navigation List */}
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        {onGoToLandingPage && (
+          <div className="mb-3">
+            <button
+              onClick={() => {
+                if (onCloseMobile) onCloseMobile();
+                onGoToLandingPage();
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 transition shadow-xs cursor-pointer group"
+            >
+              <div className="flex items-center gap-2 truncate">
+                <Globe className="w-4 h-4 text-emerald-400 group-hover:rotate-12 transition duration-300" />
+                <span className="truncate">Public School Website</span>
+              </div>
+              <span className="text-[9px] uppercase px-1.5 py-0.2 bg-emerald-500 text-slate-950 rounded font-black">
+                Web
+              </span>
+            </button>
+          </div>
+        )}
+
         <div className="text-[10px] text-slate-400 uppercase px-3 font-semibold mb-2 tracking-widest">
           Main Menu
         </div>

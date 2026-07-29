@@ -19,7 +19,8 @@ import {
   Keyboard,
   MoreVertical,
   SlidersHorizontal,
-  ShieldCheck
+  ShieldCheck,
+  Globe
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -37,6 +38,7 @@ interface HeaderProps {
   isMobileMenuOpen: boolean;
   onToggleMobileMenu: () => void;
   onOpenShortcuts?: () => void;
+  onGoToLandingPage?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -45,7 +47,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSchoolRegister,
   isMobileMenuOpen,
   onToggleMobileMenu,
-  onOpenShortcuts
+  onOpenShortcuts,
+  onGoToLandingPage
 }) => {
   const { user, firebaseUser, role, schoolSettings, demoLogin, logout } = useAuth();
   const { t } = useLanguage();
@@ -106,9 +109,14 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* School Logo & Title */}
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-xs shrink-0">
+            <button
+              type="button"
+              onClick={onGoToLandingPage}
+              className="w-7 h-7 bg-blue-600 hover:bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-xs shrink-0 transition cursor-pointer"
+              title="Return to Public School Website Landing Page"
+            >
               <GraduationCap className="w-4 h-4" />
-            </div>
+            </button>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm tracking-tight truncate max-w-[100px] xs:max-w-[140px] sm:max-w-none">
@@ -118,6 +126,16 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="hidden sm:inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded uppercase shrink-0">
                     <CheckCircle2 className="w-2.5 h-2.5" /> Verified
                   </span>
+                )}
+                {onGoToLandingPage && (
+                  <button
+                    onClick={onGoToLandingPage}
+                    className="hidden sm:inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded-lg transition cursor-pointer"
+                    title="Open Public School Website Landing Page"
+                  >
+                    <Globe className="w-3 h-3 text-emerald-500" />
+                    <span>School Website</span>
+                  </button>
                 )}
               </div>
             </div>
