@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import heroBannerImg from '../../assets/images/school_hero_banner_1785341252398.jpg';
+import principalBaluNaikImg from '../../assets/images/principal_balu_naik.png';
 import { useAuth } from '../../context/AuthContext';
 import {
   GraduationCap,
@@ -1162,11 +1163,11 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               <div className="lg:col-span-4 text-center lg:text-left space-y-4">
                 <div className="relative inline-block group cursor-pointer">
                   <img
-                    src="/principal_balu_naik.png"
+                    src={principalBaluNaikImg}
                     alt="Principal Dr. Balu Naik, B. Tech"
                     referrerPolicy="no-referrer"
                     onError={(e) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80";
+                      e.currentTarget.src = "/principal_balu_naik.png";
                     }}
                     className={`w-44 h-44 sm:w-52 sm:h-52 rounded-3xl object-cover mx-auto lg:mx-0 border-2 shadow-2xl transition-all duration-500 ease-out group-hover:scale-105 group-hover:shadow-emerald-500/25 group-hover:shadow-2xl ${
                       isDarkMode 
