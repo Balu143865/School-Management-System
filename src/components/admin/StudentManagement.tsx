@@ -193,6 +193,10 @@ export const StudentManagement: React.FC = () => {
           <img
             src={item.avatar || STUDENT_PRESET_AVATARS[0]}
             alt={item.name}
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.currentTarget.src = STUDENT_PRESET_AVATARS[0];
+            }}
             className="w-8 h-8 rounded-full object-cover border border-slate-200"
           />
           <div>

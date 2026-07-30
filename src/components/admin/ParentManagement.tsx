@@ -32,6 +32,10 @@ export const ParentManagement: React.FC = () => {
           <img
             src={item.avatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80"}
             alt={item.name}
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.currentTarget.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80";
+            }}
             className="w-8 h-8 rounded-full object-cover border border-slate-200"
           />
           <div>

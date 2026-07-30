@@ -319,6 +319,10 @@ export const Header: React.FC<HeaderProps> = ({
               <img
                 src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"}
                 alt={user?.name || 'User'}
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80";
+                }}
                 className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-slate-300 dark:border-slate-700"
               />
             </button>

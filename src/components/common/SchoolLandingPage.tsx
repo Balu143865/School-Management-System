@@ -442,6 +442,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
             src={heroBannerImg}
             alt="School Campus Background"
             referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.currentTarget.src = "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80";
+            }}
             className={`w-full h-full object-cover object-center scale-105 filter saturate-[1.2] ${
               isDarkMode ? 'opacity-20' : 'opacity-15'
             }`}
@@ -578,6 +581,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                     src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1000&q=80"
                     alt="Campus Library & Students"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1000&q=80";
+                    }}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-700 opacity-85"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
@@ -907,6 +913,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=80"
                   alt="Science Lab"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=600&q=80";
+                  }}
                   className={`rounded-3xl border h-52 sm:h-64 w-full object-cover shadow-lg ${
                     isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-amber-200 bg-white'
                   }`}
@@ -915,6 +924,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   src="https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=600&q=80"
                   alt="Classroom Instruction"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=600&q=80";
+                  }}
                   className={`rounded-3xl border h-40 sm:h-48 w-full object-cover shadow-lg ${
                     isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-amber-200 bg-white'
                   }`}
@@ -925,6 +937,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&w=600&q=80"
                   alt="Sports & Activities"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?auto=format&fit=crop&w=600&q=80";
+                  }}
                   className={`rounded-3xl border h-40 sm:h-48 w-full object-cover shadow-lg ${
                     isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-amber-200 bg-white'
                   }`}
@@ -933,6 +948,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   src="https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=600&q=80"
                   alt="Robotics & Computer Lab"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80";
+                  }}
                   className={`rounded-3xl border h-52 sm:h-64 w-full object-cover shadow-lg ${
                     isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-amber-200 bg-white'
                   }`}
@@ -1147,6 +1165,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                     src="/principal_balu_naik.png"
                     alt="Principal Dr. Balu Naik, B. Tech"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80";
+                    }}
                     className={`w-44 h-44 sm:w-52 sm:h-52 rounded-3xl object-cover mx-auto lg:mx-0 border-2 shadow-2xl transition-all duration-500 ease-out group-hover:scale-105 group-hover:shadow-emerald-500/25 group-hover:shadow-2xl ${
                       isDarkMode 
                         ? 'border-emerald-500/40 bg-slate-800 group-hover:border-emerald-400' 
@@ -1422,6 +1443,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                         src={item.avatar}
                         alt={item.name}
                         referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80";
+                        }}
                         className="w-10 h-10 rounded-full object-cover border border-emerald-500/40 shrink-0 bg-slate-200 dark:bg-slate-800"
                       />
                       <div className="min-w-0">

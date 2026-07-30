@@ -248,6 +248,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <img
             src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"}
             alt={user?.name}
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.currentTarget.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80";
+            }}
             className="w-8 h-8 rounded-full object-cover border border-slate-600"
           />
           <div className="flex-1 overflow-hidden">

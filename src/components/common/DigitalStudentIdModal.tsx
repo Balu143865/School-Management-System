@@ -155,6 +155,10 @@ export const DigitalStudentIdModal: React.FC<DigitalStudentIdModalProps> = ({
                   <img
                     src={avatarUrl}
                     alt={studentName}
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80";
+                    }}
                     className="w-20 h-24 rounded-2xl object-cover border-2 border-indigo-400/50 shadow-md"
                   />
                   <div className="absolute -bottom-2 -right-1 bg-indigo-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-white shadow-2xs">
