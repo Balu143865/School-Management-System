@@ -38,8 +38,8 @@ export const DigitalStudentIdModal: React.FC<DigitalStudentIdModalProps> = ({
   const [copied, setCopied] = useState(false);
 
   const schoolName = schoolSettings?.name || 'Greenwood International Academy';
-  const schoolAddress = schoolSettings?.address || '100 Academic Way, Metro City, NY 10001';
-  const principalName = schoolSettings?.principalName || 'Dr. Eleanor Vance';
+  const schoolAddress = schoolSettings?.address || 'Macherla, Palnadu, AP - 522426';
+  const principalName = schoolSettings?.principalName || 'Dr. Balu Naik, B. Tech';
 
   // Fallback defaults for rich ID details
   const studentName = student?.name || 'Alexandria Rivers';
@@ -47,11 +47,11 @@ export const DigitalStudentIdModal: React.FC<DigitalStudentIdModalProps> = ({
   const className = student?.className || 'Class 10-A';
   const rollNo = student?.rollNo || '04';
   const gender = student?.gender || 'Female';
-  const phone = student?.phone || '+1 (555) 019-2831';
+  const phone = student?.phone || '+91 63040 45279';
   const bloodGroup = 'O+';
   const dateOfBirth = student?.dateOfBirth || '2010-05-14';
   const parentName = student?.parentName || 'David Rivers';
-  const emergencyPhone = '+1 (555) 982-1140';
+  const emergencyPhone = '+91 63040 45279';
   const avatarUrl = student?.avatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80';
 
   const verifyToken = `VERIFY_STU_${studentId}_HASH_${student?.id || '8839'}`;
@@ -241,7 +241,7 @@ export const DigitalStudentIdModal: React.FC<DigitalStudentIdModalProps> = ({
                   <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
                     <p className="text-[10px] text-slate-400 uppercase font-bold">School Address & Support</p>
                     <p className="text-slate-200 text-xs font-medium">{schoolAddress}</p>
-                    <p className="text-slate-400 text-[11px] mt-0.5">Helpline: +1 (800) 555-SCHL</p>
+                    <p className="text-slate-400 text-[11px] mt-0.5">Helpline: +91 63040 45279</p>
                   </div>
 
                   <div className="bg-rose-950/40 p-2 rounded-xl border border-rose-500/30 text-rose-300 text-[10px] font-medium flex items-center gap-1.5">

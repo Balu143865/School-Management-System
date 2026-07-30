@@ -328,7 +328,7 @@ export const NotificationTriggerHub: React.FC<NotificationTriggerHubProps> = ({
                     pendingFees.map((fee) => {
                       const parent = parents.find((p) => p.childStudentId === fee.studentId || (p.childName && p.childName.toLowerCase() === fee.studentName.toLowerCase()));
                       const parentName = parent ? parent.name : 'Parent/Guardian';
-                      const parentPhone = parent?.phone || '+1 (555) 019-2831';
+                      const parentPhone = parent?.phone || '+91 63040 45279';
 
                       return (
                         <tr key={fee.id} className="hover:bg-slate-50/80 transition">

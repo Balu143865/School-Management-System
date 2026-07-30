@@ -392,7 +392,7 @@ export const StudentManagement: React.FC = () => {
               <label className="block font-medium text-slate-700 mb-1">Phone</label>
               <input
                 type="text"
-                placeholder="+1 555-0192"
+                placeholder="+91 63040 45279"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-emerald-500"

@@ -54,7 +54,7 @@ export const AdminAuditLog: React.FC = () => {
   const [newLog, setNewLog] = useState<Partial<AuditLogEntry>>({
     action: 'SETTING_CHANGED',
     category: 'settings',
-    userName: user?.name || 'Dr. Eleanor Vance',
+    userName: user?.name || 'Dr. Balu Naik, B. Tech',
     userRole: (user?.role as UserRole) || 'admin',
     details: 'Modified system security policy settings',
     targetEntity: 'School Settings Configuration',
@@ -100,7 +100,7 @@ export const AdminAuditLog: React.FC = () => {
       setNewLog({
         action: 'USER_LOGIN',
         category: 'auth',
-        userName: user?.name || 'Dr. Eleanor Vance',
+        userName: user?.name || 'Dr. Balu Naik, B. Tech',
         userRole: (user?.role as UserRole) || 'admin',
         details: '',
         targetEntity: '',

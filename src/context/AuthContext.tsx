@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             name: fbUser.displayName || fbUser.email.split('@')[0],
             email: fbUser.email,
             role: 'admin', // default real-time authenticated admin
-            phone: fbUser.phoneNumber || '+1 (555) 019-2831'
+            phone: fbUser.phoneNumber || '+91 63040 45279'
           };
           setUser(customUser);
         }
@@ -148,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name,
       email,
       role: assignedRole,
-      phone: '+1 (555) 019-2831'
+      phone: '+91 63040 45279'
     });
   };
 

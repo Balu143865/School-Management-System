@@ -538,7 +538,7 @@ app.post('/api/ai/notice-generator', async (req, res) => {
     res.json({ noticeText: response.text });
   } catch (err) {
     res.json({
-      noticeText: `OFFICIAL SCHOOL CIRCULAR\n\nDate: ${new Date().toLocaleDateString()}\nTarget: ${req.body.targetAudience || 'All Students & Parents'}\nSubject: ${req.body.topic || 'School Announcement'}\n\nDear School Community,\n\n${req.body.keyPoints || 'Please be informed regarding upcoming academic events and schedules.'}\n\nThank you for your cooperation.\n\nSincerely,\nDr. Eleanor Vance\nPrincipal`
+      noticeText: `OFFICIAL SCHOOL CIRCULAR\n\nDate: ${new Date().toLocaleDateString()}\nTarget: ${req.body.targetAudience || 'All Students & Parents'}\nSubject: ${req.body.topic || 'School Announcement'}\n\nDear School Community,\n\n${req.body.keyPoints || 'Please be informed regarding upcoming academic events and schedules.'}\n\nThank you for your cooperation.\n\nSincerely,\nDr. Balu Naik, B. Tech\nPrincipal`
     });
   }
 });

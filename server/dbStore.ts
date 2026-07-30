@@ -83,7 +83,7 @@ const DEFAULT_NOTIFICATION_LOGS: NotificationLog[] = [
     message: "Dear Parent, Midterm Mathematics Exam for Class 10-A is scheduled on 2026-08-15 at 09:00 AM (Duration: 90 mins). Total marks: 100. Please ensure timely preparation.",
     sentAt: "2026-07-25T10:15:00.000Z",
     status: "delivered",
-    triggeredBy: "Teacher Dr. Eleanor Vance",
+    triggeredBy: "Teacher Dr. Balu Naik, B. Tech",
     metadata: {
       examId: "exam-101",
       examDate: "2026-08-15",
@@ -119,7 +119,7 @@ const DEFAULT_AUDIT_LOGS: AuditLogEntry[] = [
     action: "USER_LOGIN",
     category: "auth",
     userId: "u-admin",
-    userName: "Dr. Eleanor Vance",
+    userName: "Dr. Balu Naik, B. Tech",
     userRole: "admin",
     ipAddress: "192.168.1.45",
     details: "Administrator logged in successfully via Secure Single Sign-On",
@@ -132,7 +132,7 @@ const DEFAULT_AUDIT_LOGS: AuditLogEntry[] = [
     action: "STUDENT_UPDATED",
     category: "student",
     userId: "u-admin",
-    userName: "Dr. Eleanor Vance",
+    userName: "Dr. Balu Naik, B. Tech",
     userRole: "admin",
     ipAddress: "192.168.1.45",
     details: "Updated emergency contact & section placement for Alexandria Rivers",
@@ -145,7 +145,7 @@ const DEFAULT_AUDIT_LOGS: AuditLogEntry[] = [
     action: "SETTING_CHANGED",
     category: "settings",
     userId: "u-admin",
-    userName: "Dr. Eleanor Vance",
+    userName: "Dr. Balu Naik, B. Tech",
     userRole: "admin",
     ipAddress: "192.168.1.45",
     details: "Updated Academic Year config to 2025-2026 & enabled OTP Two-Factor Verification",
@@ -158,7 +158,7 @@ const DEFAULT_AUDIT_LOGS: AuditLogEntry[] = [
     action: "FEE_RECORD_CREATED",
     category: "finance",
     userId: "u-admin",
-    userName: "Dr. Eleanor Vance",
+    userName: "Dr. Balu Naik, B. Tech",
     userRole: "admin",
     ipAddress: "192.168.1.88",
     details: "Recorded partial payment $1,250 via Credit Card for Term 1 Tuition Fee",
@@ -184,7 +184,7 @@ const DEFAULT_AUDIT_LOGS: AuditLogEntry[] = [
     action: "CALENDAR_EVENT_ADDED",
     category: "system",
     userId: "u-admin",
-    userName: "Dr. Eleanor Vance",
+    userName: "Dr. Balu Naik, B. Tech",
     userRole: "admin",
     ipAddress: "192.168.1.45",
     details: "Published Annual Science & Technology Fair to Greenwood Shared Calendar",
@@ -210,23 +210,23 @@ const DEFAULT_SETTINGS: SchoolSettings = {
   name: "Greenwood International Academy",
   code: "GIA-2026",
   tagline: "Excellence in Education & Character Building",
-  address: "123 Academic Blvd, Innovation City, CA 90210",
-  phone: "+1 (555) 234-5678",
+  address: "Macherla, Palnadu, AP - 522426",
+  phone: "+91 63040 45279",
   email: "contact@greenwood.edu",
   academicYear: "2025-2026",
   logo: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=200&q=80",
-  principalName: "Dr. Eleanor Vance",
+  principalName: "Dr. Balu Naik, B. Tech",
   isOtpVerified: true
 };
 
 const DEFAULT_USERS: User[] = [
   {
     id: "u-admin",
-    name: "Dr. Eleanor Vance",
+    name: "Dr. Balu Naik, B. Tech",
     email: "admin@school.com",
     role: "admin",
     phone: "+1 555-0100",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80",
+    avatar: "/principal_balu_naik.png",
     address: "Admin Residence, Campus Road"
   },
   {
@@ -348,7 +348,7 @@ const DEFAULT_TIMETABLE: TimetableSlot[] = [
 ];
 
 const DEFAULT_NOTICES: Notice[] = [
-  { id: "not-1", title: "Annual Science Exhibition 2026 Announcement", content: "We are thrilled to invite all students from Grades 8-12 to participate in the Annual Science & Robotics Exhibition. Registration closes on August 1st.", category: "Event", targetRole: "all", date: "2026-07-25", authorName: "Dr. Eleanor Vance", authorRole: "Principal", urgent: false },
+  { id: "not-1", title: "Annual Science Exhibition 2026 Announcement", content: "We are thrilled to invite all students from Grades 8-12 to participate in the Annual Science & Robotics Exhibition. Registration closes on August 1st.", category: "Event", targetRole: "all", date: "2026-07-25", authorName: "Dr. Balu Naik, B. Tech", authorRole: "Principal", urgent: false },
   { id: "not-2", title: "Parent-Teacher Conference Schedule", content: "The Q2 Parent-Teacher Conference will be conducted on Saturday, August 8th from 9:00 AM to 1:00 PM.", category: "Academic", targetRole: "parents", date: "2026-07-26", authorName: "School Administration", authorRole: "Admin", urgent: true }
 ];
 
@@ -365,7 +365,7 @@ const DEFAULT_MESSAGES: ChatMessage[] = [
   {
     id: "msg-1",
     senderId: "u-admin",
-    senderName: "Dr. Eleanor Vance",
+    senderName: "Dr. Balu Naik, B. Tech",
     senderRole: "admin",
     receiverRole: "all",
     text: "Welcome teachers, students, and parents to the Greenwood SMS Internal Portal!",
@@ -470,7 +470,7 @@ const DEFAULT_CALENDAR_EVENTS: CalendarEvent[] = [
     targetRole: "all",
     className: "All Classes",
     location: "Campus Sports Complex & Innovation Lab",
-    organizer: "Dr. Eleanor Vance"
+    organizer: "Dr. Balu Naik, B. Tech"
   },
   {
     id: "cal-4",
@@ -556,7 +556,7 @@ const DEFAULT_CALENDAR_EVENTS: CalendarEvent[] = [
     targetRole: "teachers",
     className: "Faculty Only",
     location: "Conference Room A",
-    organizer: "Dr. Eleanor Vance"
+    organizer: "Dr. Balu Naik, B. Tech"
   },
   {
     id: "cal-11",

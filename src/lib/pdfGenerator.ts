@@ -225,7 +225,7 @@ export const generateStudentReportPDF = (data: StudentReportData): jsPDF => {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(15, 23, 42);
-  doc.text('Dr. Eleanor Vance', 165, sigY + 16, { align: 'center' });
+  doc.text('Dr. Balu Naik, B. Tech', 165, sigY + 16, { align: 'center' });
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(100, 116, 139);

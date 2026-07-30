@@ -309,7 +309,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     {
       id: 'tch-1',
       type: 'teacher',
-      title: 'Dr. Eleanor Vance',
+      title: 'Dr. Balu Naik, B. Tech',
       subtitle: 'School Principal & Academic Director',
       badge: 'Admin',
       badgeColor: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',

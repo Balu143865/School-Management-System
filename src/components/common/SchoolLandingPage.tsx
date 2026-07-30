@@ -39,7 +39,10 @@ import {
   Quote,
   HelpCircle,
   Sun,
-  Moon
+  Moon,
+  Linkedin,
+  Github,
+  Instagram
 } from 'lucide-react';
 
 interface SchoolLandingPageProps {
@@ -110,8 +113,8 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
             <span>Enrollment for Academic Session 2026-2027 is now active.</span>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
-            <a href="tel:+18005554733" className="hover:underline flex items-center gap-1 opacity-90 hover:opacity-100">
-              <Phone className="w-3 h-3" /> +1 (800) 555-GREEN
+            <a href="tel:+916304045279" className="hover:underline flex items-center gap-1 opacity-90 hover:opacity-100">
+              <Phone className="w-3 h-3" /> +91 63040 45279
             </a>
             <span className="hidden md:inline opacity-40">•</span>
             <a href="mailto:admissions@greenwood.edu" className="hover:underline flex items-center gap-1 opacity-90 hover:opacity-100">
@@ -910,8 +913,8 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               <div className="lg:col-span-4 text-center lg:text-left space-y-4">
                 <div className="relative inline-block">
                   <img
-                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80"
-                    alt="Principal Dr. Eleanor Vance"
+                    src="/principal_balu_naik.png"
+                    alt="Principal Dr. Balu Naik, B. Tech"
                     referrerPolicy="no-referrer"
                     className={`w-44 h-44 sm:w-52 sm:h-52 rounded-3xl object-cover mx-auto lg:mx-0 border-2 shadow-2xl ${
                       isDarkMode ? 'border-emerald-500/40 bg-slate-800' : 'border-indigo-400 bg-indigo-50'
@@ -922,9 +925,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   </div>
                 </div>
                 <div>
-                  <h3 className={`text-lg font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Dr. Eleanor Vance, Ph.D.</h3>
+                  <h3 className={`text-lg font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{schoolSettings?.principalName || 'Dr. Balu Naik, B. Tech'}</h3>
                   <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Head of School & Executive Director</p>
-                  <p className={`text-[11px] mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Former Senior Fellow at Oxford Education Forum</p>
+                  <p className={`text-[11px] mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Academic Dean & Lead Educational Visionary</p>
                 </div>
               </div>
 
@@ -1320,7 +1323,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   </div>
                   <div>
                     <h5 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Campus Address</h5>
-                    <p className={`mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>100 Greenwood Academy Boulevard, Education District, NY 10001</p>
+                    <p className={`mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Macherla, Palnadu, AP - 522426</p>
                   </div>
                 </div>
 
@@ -1334,7 +1337,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   </div>
                   <div>
                     <h5 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Admissions Helpline</h5>
-                    <p className={`mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>+1 (800) 555-GREEN / +1 (555) 019-2831</p>
+                    <p className={`mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>+91 63040 45279</p>
                   </div>
                 </div>
 
@@ -1411,7 +1414,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                       <label className={`block font-semibold mb-1 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Phone Number</label>
                       <input
                         type="tel"
-                        placeholder="+1 555-0192"
+                        placeholder="+91 63040 45279"
                         value={inquiryForm.phone}
                         onChange={e => setInquiryForm({ ...inquiryForm, phone: e.target.value })}
                         className={`w-full px-3.5 py-2.5 rounded-xl border focus:outline-none focus:border-emerald-500 ${
@@ -1498,6 +1501,42 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 <span>Accredited International School (CBSE / IB World)</span>
               </div>
+              
+              <div className="pt-2 space-y-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Connect With Us</span>
+                <div className="flex items-center gap-2.5">
+                  <a
+                    href="https://www.linkedin.com/in/banavath-balu-naik-a9ab03298"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="LinkedIn Profile"
+                    className="p-2.5 bg-slate-900 hover:bg-blue-600/20 text-slate-400 hover:text-blue-400 border border-slate-800 hover:border-blue-500/50 rounded-xl transition-all duration-200 group flex items-center gap-2 text-xs font-semibold"
+                  >
+                    <Linkedin className="w-4 h-4 transition-transform group-hover:scale-110 text-blue-400" />
+                    <span>LinkedIn</span>
+                  </a>
+                  <a
+                    href="https://github.com/Balu143865"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="GitHub Profile"
+                    className="p-2.5 bg-slate-900 hover:bg-slate-700/50 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-500/50 rounded-xl transition-all duration-200 group flex items-center gap-2 text-xs font-semibold"
+                  >
+                    <Github className="w-4 h-4 transition-transform group-hover:scale-110 text-slate-200" />
+                    <span>GitHub</span>
+                  </a>
+                  <a
+                    href="https://www.instagram.com/balu_naik_rocky"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram Profile"
+                    className="p-2.5 bg-slate-900 hover:bg-pink-600/20 text-slate-400 hover:text-pink-400 border border-slate-800 hover:border-pink-500/50 rounded-xl transition-all duration-200 group flex items-center gap-2 text-xs font-semibold"
+                  >
+                    <Instagram className="w-4 h-4 transition-transform group-hover:scale-110 text-pink-400" />
+                    <span>Instagram</span>
+                  </a>
+                </div>
+              </div>
             </div>
 
             {/* Col 2: Quick Links */}
@@ -1557,11 +1596,11 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               <ul className="space-y-2.5 text-xs text-slate-300">
                 <li className="flex items-start gap-2.5">
                   <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>100 Greenwood Blvd, Education District, NY 10001</span>
+                  <span>Macherla, Palnadu, AP - 522426</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>+1 (800) 555-GREEN</span>
+                  <a href="tel:+916304045279" className="hover:text-emerald-300 transition">+91 63040 45279</a>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -1578,11 +1617,21 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
           {/* Bottom Copyright & Legal */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
             <p>© 2026 {schoolName}. All rights reserved. Powered by AI Studio School Management Platform.</p>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-5">
+              <div className="flex items-center gap-2 border-r border-slate-800 pr-4">
+                <a href="https://www.linkedin.com/in/banavath-balu-naik-a9ab03298" target="_blank" rel="noopener noreferrer" title="LinkedIn" className="p-1.5 hover:text-blue-400 transition">
+                  <Linkedin className="w-4 h-4" />
+                </a>
+                <a href="https://github.com/Balu143865" target="_blank" rel="noopener noreferrer" title="GitHub" className="p-1.5 hover:text-white transition">
+                  <Github className="w-4 h-4" />
+                </a>
+                <a href="https://www.instagram.com/balu_naik_rocky" target="_blank" rel="noopener noreferrer" title="Instagram" className="p-1.5 hover:text-pink-400 transition">
+                  <Instagram className="w-4 h-4" />
+                </a>
+              </div>
               <a href="#about" className="hover:text-slate-300 transition">Privacy Policy</a>
               <a href="#about" className="hover:text-slate-300 transition">Terms & Conditions</a>
               <a href="#about" className="hover:text-slate-300 transition">Sitemap</a>
-              <a href="#about" className="hover:text-slate-300 transition">Accreditation</a>
             </div>
           </div>
         </div>

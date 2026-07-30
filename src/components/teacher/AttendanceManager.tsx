@@ -47,6 +47,50 @@ import { QRAttendanceModal } from '../common/QRAttendanceModal';
 import { Modal } from '../common/Modal';
 import { generateAttendanceSummaryPDF } from '../../lib/pdfGenerator';
 
+// Custom Recharts Tooltip Component
+const CustomRechartsTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    if (data.isWeekend) {
+      return (
+        <div className="bg-slate-900 text-white p-2.5 rounded-xl text-xs shadow-lg border border-slate-800">
+          <p className="font-bold">{data.formattedDate} ({data.dayName})</p>
+          <p className="text-slate-400 text-[11px]">School Weekend - No Classes</p>
+        </div>
+      );
+    }
+    return (
+      <div className="bg-slate-900/95 backdrop-blur-md text-white p-3 rounded-xl text-xs shadow-2xl border border-slate-700 space-y-1.5 min-w-[170px]">
+        <div className="flex items-center justify-between border-b border-slate-700/80 pb-1.5">
+          <span className="font-bold text-slate-100">{data.formattedDate} ({data.dayName})</span>
+          <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 font-extrabold rounded text-[11px] border border-emerald-500/30">
+            {data.rate}% Rate
+          </span>
+        </div>
+        <div className="space-y-1 text-[11px]">
+          <div className="flex justify-between text-emerald-400">
+            <span>Present Students:</span>
+            <strong className="font-mono">{data.present}</strong>
+          </div>
+          <div className="flex justify-between text-amber-400">
+            <span>Late Arrivals:</span>
+            <strong className="font-mono">{data.late}</strong>
+          </div>
+          <div className="flex justify-between text-blue-400">
+            <span>Excused Leave:</span>
+            <strong className="font-mono">{data.excused}</strong>
+          </div>
+          <div className="flex justify-between text-rose-400">
+            <span>Unexcused Absences:</span>
+            <strong className="font-mono">{data.absent}</strong>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export const AttendanceManager: React.FC = () => {
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [students, setStudents] = useState<User[]>([]);
@@ -281,50 +325,6 @@ export const AttendanceManager: React.FC = () => {
 
   const peakDay = validSchoolDays.reduce((prev, current) => (current.rate > prev.rate ? current : prev), validSchoolDays[0] || { formattedDate: 'N/A', rate: 0 });
   const lowestDay = validSchoolDays.reduce((prev, current) => (current.rate < prev.rate ? current : prev), validSchoolDays[0] || { formattedDate: 'N/A', rate: 0 });
-
-  // Custom Recharts Tooltip Component
-  const CustomRechartsTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      if (data.isWeekend) {
-        return (
-          <div className="bg-slate-900 text-white p-2.5 rounded-xl text-xs shadow-lg border border-slate-800">
-            <p className="font-bold">{data.formattedDate} ({data.dayName})</p>
-            <p className="text-slate-400 text-[11px]">School Weekend - No Classes</p>
-          </div>
-        );
-      }
-      return (
-        <div className="bg-slate-900/95 backdrop-blur-md text-white p-3 rounded-xl text-xs shadow-2xl border border-slate-700 space-y-1.5 min-w-[170px]">
-          <div className="flex items-center justify-between border-b border-slate-700/80 pb-1.5">
-            <span className="font-bold text-slate-100">{data.formattedDate} ({data.dayName})</span>
-            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 font-extrabold rounded text-[11px] border border-emerald-500/30">
-              {data.rate}% Rate
-            </span>
-          </div>
-          <div className="space-y-1 text-[11px]">
-            <div className="flex justify-between text-emerald-400">
-              <span>Present Students:</span>
-              <strong className="font-mono">{data.present}</strong>
-            </div>
-            <div className="flex justify-between text-amber-400">
-              <span>Late Arrivals:</span>
-              <strong className="font-mono">{data.late}</strong>
-            </div>
-            <div className="flex justify-between text-blue-400">
-              <span>Excused Leave:</span>
-              <strong className="font-mono">{data.excused}</strong>
-            </div>
-            <div className="flex justify-between text-rose-400">
-              <span>Unexcused Absences:</span>
-              <strong className="font-mono">{data.absent}</strong>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   // Format Copyable Text Summary
   const handleCopySummary = () => {

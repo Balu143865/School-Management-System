@@ -94,7 +94,7 @@ export const SchoolRegistrationModal: React.FC<Props> = ({ isOpen, onClose }) =>
               <label className="block text-slate-700 font-medium mb-1">Contact Phone</label>
               <input
                 type="text"
-                placeholder="+1 (555) 019-2831"
+                placeholder="+91 63040 45279"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-emerald-500"
@@ -117,7 +117,7 @@ export const SchoolRegistrationModal: React.FC<Props> = ({ isOpen, onClose }) =>
               <label className="block text-slate-700 font-medium mb-1">Campus Address</label>
               <input
                 type="text"
-                placeholder="City, State"
+                placeholder="Macherla, Palnadu, AP - 522426"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-emerald-500"
