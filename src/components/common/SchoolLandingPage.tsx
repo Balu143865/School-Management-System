@@ -40,6 +40,8 @@ import {
   HelpCircle,
   Sun,
   Moon,
+  Menu,
+  X,
   Linkedin,
   Github,
   Instagram
@@ -54,6 +56,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
   const [inquirySubmitted, setInquirySubmitted] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [testimonialFilter, setTestimonialFilter] = useState<'all' | 'students' | 'parents' | 'alumni'>('all');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme !== null) {
@@ -89,6 +92,33 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
   const handleRoleSelect = async (role: 'admin' | 'teacher' | 'student' | 'parent') => {
     await demoLogin(role);
     onEnterDashboard(role);
+  };
+
+  const handleWhatsAppSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!inquiryForm.parentName || !inquiryForm.email) {
+      alert("Please enter Parent / Guardian Name and Email Address first.");
+      return;
+    }
+
+    const formattedMessage = `*New Admission Inquiry - ${schoolName}*\n` +
+      `----------------------------------\n` +
+      `👤 *Parent/Guardian:* ${inquiryForm.parentName}\n` +
+      `📧 *Email:* ${inquiryForm.email}\n` +
+      `📞 *Phone:* ${inquiryForm.phone || 'Not Provided'}\n` +
+      `🎓 *Target Grade:* ${inquiryForm.grade}\n` +
+      `💬 *Inquiry Details:* ${inquiryForm.message || 'Interested in 2026-2027 admissions.'}`;
+
+    const rawPhone = schoolSettings?.phone || '+91 63040 45279';
+    const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(formattedMessage)}`;
+
+    window.open(whatsappUrl, '_blank');
+    setInquirySubmitted(true);
+    setTimeout(() => {
+      setInquirySubmitted(false);
+      setInquiryForm({ parentName: '', email: '', phone: '', grade: 'Grade 9', message: '' });
+    }, 4000);
   };
 
   const handleInquirySubmit = (e: React.FormEvent) => {
@@ -191,14 +221,213 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
 
             <button
               onClick={() => handleRoleSelect('admin')}
-              className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black rounded-xl text-xs flex items-center gap-2 transition shadow-lg shadow-emerald-500/25 active:scale-95"
+              className="hidden sm:flex px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black rounded-xl text-xs items-center gap-2 transition shadow-lg shadow-emerald-500/25 active:scale-95"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>Admin Dashboard</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
+
+            {/* Mobile Hamburger Menu Toggle Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              type="button"
+              className={`lg:hidden p-2.5 rounded-xl border transition-all duration-200 flex items-center justify-center cursor-pointer shadow-sm active:scale-95 ${
+                isDarkMode
+                  ? 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700'
+                  : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+              }`}
+              title="Toggle Menu"
+              aria-label="Toggle Navigation Menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5 text-emerald-500" />
+              ) : (
+                <Menu className="w-5 h-5 text-slate-700 dark:text-slate-200" />
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className={`lg:hidden border-t max-h-[calc(100vh-5rem)] overflow-y-auto px-4 py-4 space-y-4 shadow-2xl animate-in slide-in-from-top-2 duration-200 ${
+            isDarkMode ? 'bg-slate-900/98 border-slate-800 text-slate-200' : 'bg-white/98 border-slate-200 text-slate-800'
+          }`}>
+            <div className="space-y-1">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Navigation Options</p>
+              <nav className="grid gap-1 font-semibold text-sm">
+                <a
+                  href="#home"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-3.5 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 font-bold flex items-center justify-between transition hover:bg-emerald-500/20"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <HomeIcon className="w-4 h-4" /> Home
+                  </span>
+                  <ChevronRight className="w-4 h-4 opacity-60" />
+                </a>
+                <a
+                  href="#about"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-3.5 py-2.5 rounded-xl flex items-center justify-between transition ${
+                    isDarkMode ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <BookOpen className="w-4 h-4 text-emerald-500" /> About Us
+                  </span>
+                  <ChevronRight className="w-4 h-4 opacity-40" />
+                </a>
+                <a
+                  href="#portals"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-3.5 py-2.5 rounded-xl flex items-center justify-between transition ${
+                    isDarkMode ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Users className="w-4 h-4 text-emerald-500" /> Role Portals
+                  </span>
+                  <ChevronRight className="w-4 h-4 opacity-40" />
+                </a>
+                <a
+                  href="#academics"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-3.5 py-2.5 rounded-xl flex items-center justify-between transition ${
+                    isDarkMode ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <GraduationCap className="w-4 h-4 text-emerald-500" /> Academics
+                  </span>
+                  <ChevronRight className="w-4 h-4 opacity-40" />
+                </a>
+                <a
+                  href="#facilities"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-3.5 py-2.5 rounded-xl flex items-center justify-between transition ${
+                    isDarkMode ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Building2 className="w-4 h-4 text-emerald-500" /> Facilities
+                  </span>
+                  <ChevronRight className="w-4 h-4 opacity-40" />
+                </a>
+                <a
+                  href="#leadership"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-3.5 py-2.5 rounded-xl flex items-center justify-between transition ${
+                    isDarkMode ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Award className="w-4 h-4 text-emerald-500" /> Leadership
+                  </span>
+                  <ChevronRight className="w-4 h-4 opacity-40" />
+                </a>
+                <a
+                  href="#news"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-3.5 py-2.5 rounded-xl flex items-center justify-between transition ${
+                    isDarkMode ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Sparkles className="w-4 h-4 text-emerald-500" /> News & Announcements
+                  </span>
+                  <ChevronRight className="w-4 h-4 opacity-40" />
+                </a>
+                <a
+                  href="#testimonials"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-3.5 py-2.5 rounded-xl flex items-center justify-between transition ${
+                    isDarkMode ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Star className="w-4 h-4 text-emerald-500" /> Testimonials
+                  </span>
+                  <ChevronRight className="w-4 h-4 opacity-40" />
+                </a>
+                <a
+                  href="#faq"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-3.5 py-2.5 rounded-xl flex items-center justify-between transition ${
+                    isDarkMode ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <HelpCircle className="w-4 h-4 text-emerald-500" /> FAQ
+                  </span>
+                  <ChevronRight className="w-4 h-4 opacity-40" />
+                </a>
+                <a
+                  href="#contact"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-3.5 py-2.5 rounded-xl flex items-center justify-between transition ${
+                    isDarkMode ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Phone className="w-4 h-4 text-emerald-500" /> Contact Us
+                  </span>
+                  <ChevronRight className="w-4 h-4 opacity-40" />
+                </a>
+              </nav>
+            </div>
+
+            {/* Quick Access Portals */}
+            <div className={`pt-3 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-200'} space-y-2`}>
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3">Quick Role Logins</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleRoleSelect('admin');
+                  }}
+                  className="p-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-md active:scale-95"
+                >
+                  <Lock className="w-3.5 h-3.5" /> Admin
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleRoleSelect('teacher');
+                  }}
+                  className={`p-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border transition ${
+                    isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-indigo-500" /> Teacher
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleRoleSelect('student');
+                  }}
+                  className={`p-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border transition ${
+                    isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  <GraduationCap className="w-3.5 h-3.5 text-emerald-500" /> Student
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleRoleSelect('parent');
+                  }}
+                  className={`p-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border transition ${
+                    isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  <HeartHandshake className="w-3.5 h-3.5 text-purple-500" /> Parent
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
@@ -600,13 +829,15 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-16">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <span className={`text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full border ${
-                isDarkMode
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                  : 'bg-amber-500/15 text-amber-800 border-amber-500/30'
-              }`}>
-                Why Choose {schoolName}?
-              </span>
+              <div className="inline-flex items-center max-w-full">
+                <span className={`text-xs font-bold tracking-wider uppercase px-3.5 py-1.5 rounded-full border leading-snug text-center ${
+                  isDarkMode
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                    : 'bg-amber-500/15 text-amber-900 border-amber-500/30'
+                }`}>
+                  Why Choose Greenwood?
+                </span>
+              </div>
               <h2 className={`text-2xl sm:text-4xl font-black leading-tight ${
                 isDarkMode ? 'text-white' : 'text-slate-900'
               }`}>
@@ -911,16 +1142,18 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
           }`}>
             <div className="grid lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-4 text-center lg:text-left space-y-4">
-                <div className="relative inline-block">
+                <div className="relative inline-block group cursor-pointer">
                   <img
                     src="/principal_balu_naik.png"
                     alt="Principal Dr. Balu Naik, B. Tech"
                     referrerPolicy="no-referrer"
-                    className={`w-44 h-44 sm:w-52 sm:h-52 rounded-3xl object-cover mx-auto lg:mx-0 border-2 shadow-2xl ${
-                      isDarkMode ? 'border-emerald-500/40 bg-slate-800' : 'border-indigo-400 bg-indigo-50'
+                    className={`w-44 h-44 sm:w-52 sm:h-52 rounded-3xl object-cover mx-auto lg:mx-0 border-2 shadow-2xl transition-all duration-500 ease-out group-hover:scale-105 group-hover:shadow-emerald-500/25 group-hover:shadow-2xl ${
+                      isDarkMode 
+                        ? 'border-emerald-500/40 bg-slate-800 group-hover:border-emerald-400' 
+                        : 'border-indigo-400 bg-indigo-50 group-hover:border-indigo-600'
                     }`}
                   />
-                  <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-slate-950 p-2 rounded-xl shadow-lg">
+                  <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-slate-950 p-2 rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
                     <Quote className="w-4 h-4 fill-current" />
                   </div>
                 </div>
@@ -1327,19 +1560,27 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   </div>
                 </div>
 
-                <div className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 ease-out transform hover:-translate-y-1 hover:scale-[1.01] shadow-md hover:shadow-xl hover:shadow-blue-500/15 ${
-                  isDarkMode
-                    ? 'bg-slate-900 border-slate-800 hover:border-blue-500/50'
-                    : 'bg-white border-orange-200/90 hover:border-blue-500/50'
-                }`}>
-                  <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl">
-                    <Phone className="w-5 h-5" />
+                <a
+                  href={`https://wa.me/916304045279?text=${encodeURIComponent(`Hello Greenwood Admissions Office, I would like to inquire about school admissions.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 ease-out transform hover:-translate-y-1 hover:scale-[1.01] shadow-md hover:shadow-xl hover:shadow-emerald-500/20 group ${
+                    isDarkMode
+                      ? 'bg-slate-900 border-slate-800 hover:border-emerald-500/50'
+                      : 'bg-white border-orange-200/90 hover:border-emerald-500/50'
+                  }`}
+                >
+                  <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
+                    <MessageSquare className="w-5 h-5 fill-current" />
                   </div>
                   <div>
-                    <h5 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Admissions Helpline</h5>
-                    <p className={`mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>+91 63040 45279</p>
+                    <div className="flex items-center gap-2">
+                      <h5 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Admissions Helpline & WhatsApp</h5>
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Chat Active</span>
+                    </div>
+                    <p className={`mt-0.5 font-semibold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>+91 63040 45279 (Click to Chat)</p>
                   </div>
-                </div>
+                </a>
 
                 <div className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 ease-out transform hover:-translate-y-1 hover:scale-[1.01] shadow-md hover:shadow-xl hover:shadow-purple-500/15 ${
                   isDarkMode
@@ -1458,13 +1699,28 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-600/20"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>Submit Admission Inquiry</span>
-                  </button>
+                  <div className="pt-2 grid sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={handleWhatsAppSubmit}
+                      className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-600/30 cursor-pointer"
+                    >
+                      <MessageSquare className="w-4 h-4 fill-current" />
+                      <span>Send via WhatsApp (+91 63040 45279)</span>
+                    </button>
+
+                    <button
+                      type="submit"
+                      className={`w-full py-3 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition border active:scale-95 cursor-pointer ${
+                        isDarkMode
+                          ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
+                      }`}
+                    >
+                      <Send className="w-4 h-4 text-emerald-500" />
+                      <span>Submit Web Inquiry</span>
+                    </button>
+                  </div>
                 </form>
               )}
             </div>

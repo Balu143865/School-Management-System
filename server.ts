@@ -623,6 +623,9 @@ app.post('/api/ai/event-planner', async (req, res) => {
 });
 
 
+// Serve static files from public directory
+app.use(express.static(path.join(process.cwd(), 'public')));
+
 // Start Server Function
 async function start() {
   if (process.env.NODE_ENV !== 'production') {
