@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import heroBannerImg from '../../assets/images/school_hero_banner_1785341252398.jpg';
 import principalBaluNaikImg from '../../assets/images/principal_balu_naik.jpg';
+import { principalImageBase64 } from '../../assets/images/principalImageData';
 import { useAuth } from '../../context/AuthContext';
 import {
   GraduationCap,
@@ -1173,14 +1174,12 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               <div className="lg:col-span-4 text-center lg:text-left space-y-4">
                 <div className="relative inline-block group cursor-pointer">
                   <img
-                    src={principalBaluNaikImg}
+                    src={principalBaluNaikImg || principalImageBase64}
                     alt="Principal Dr. Balu Naik, B. Tech"
                     onError={(e) => {
                       const target = e.currentTarget;
-                      if (!target.src.includes('/principal_balu_naik.jpg')) {
-                        target.src = '/principal_balu_naik.jpg';
-                      } else if (!target.src.includes('/principal_balu_naik.png')) {
-                        target.src = '/principal_balu_naik.png';
+                      if (target.src !== principalImageBase64 && !target.src.startsWith('data:image')) {
+                        target.src = principalImageBase64;
                       } else {
                         target.onerror = null;
                         target.src = "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80";
