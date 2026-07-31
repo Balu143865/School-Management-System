@@ -163,7 +163,7 @@ export const StudyMaterialManager: React.FC = () => {
         ) : (
           <div className="flex items-center gap-2 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-xl border border-purple-200/60 text-xs font-semibold">
             <Sparkles className="w-4 h-4 text-purple-600" />
-            <span>Greenwood Verified Learning Library</span>
+            <span>BN International Academy Verified Learning Library</span>
           </div>
         )}
       </div>

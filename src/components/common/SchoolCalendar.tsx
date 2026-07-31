@@ -430,7 +430,7 @@ export const SchoolCalendar: React.FC = () => {
       <div className="bg-[#0F172A] p-2.5 sm:p-4 rounded-2xl text-white shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
         <div>
           <div className="flex items-center gap-1.5 text-blue-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-0.5">
-            <CalendarIcon className="w-3.5 h-3.5 text-amber-400" /> Greenwood Academic Calendar
+            <CalendarIcon className="w-3.5 h-3.5 text-amber-400" /> BN International Academy Academic Calendar
           </div>
           <h2 className="text-sm sm:text-lg font-bold tracking-tight">Schedule & Event Planner</h2>
           <p className="hidden sm:block text-[11px] text-slate-300">

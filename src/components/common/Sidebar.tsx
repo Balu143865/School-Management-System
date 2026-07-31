@@ -129,25 +129,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const renderContent = () => (
     <>
       {/* High Density Brand Header */}
-      <div className="p-4 sm:p-5 border-b border-slate-700/80 flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center font-bold text-lg text-white shadow-xs">
-              E
+      <div className="p-4 sm:p-5 border-b border-slate-700/80 flex items-start justify-between">
+        <div className="min-w-0 flex-1 pr-2">
+          <div className="flex items-start gap-2.5">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-extrabold text-xs text-white shadow-xs tracking-wider shrink-0 mt-0.5">
+              BN
             </div>
-            <span className="font-bold tracking-tight text-base text-white">
-              {schoolSettings?.name || 'EduMaster Pro'}
-            </span>
-          </div>
-          <div className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">
-            v4.2 Enterprise • {role}
+            <div className="min-w-0 flex-1">
+              <div className="font-bold tracking-tight text-sm text-white leading-tight break-words">
+                {schoolSettings?.name || 'BN International Academy'}
+              </div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-widest font-mono mt-1">
+                v4.2 Enterprise • {role}
+              </div>
+            </div>
           </div>
         </div>
 
         {onCloseMobile && (
           <button
             onClick={onCloseMobile}
-            className="lg:hidden p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+            className="lg:hidden p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition shrink-0"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />

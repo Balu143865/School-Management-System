@@ -329,7 +329,7 @@ export const AttendanceManager: React.FC = () => {
   // Format Copyable Text Summary
   const handleCopySummary = () => {
     const text = [
-      `📊 GREENWOOD ACADEMY - DAILY CLASSROOM ATTENDANCE SUMMARY`,
+      `📊 BN INTERNATIONAL ACADEMY - DAILY CLASSROOM ATTENDANCE SUMMARY`,
       `Date: ${selectedDate}`,
       `Class: ${currentClass.name}-${currentClass.section} (Room ${currentClass.roomNumber || '302'})`,
       `Teacher: ${currentClass.classTeacherName || 'Faculty In-Charge'}`,

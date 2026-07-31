@@ -46,18 +46,18 @@ const drawLetterhead = (doc: jsPDF, title: string, subtitle?: string) => {
   doc.roundedRect(12, 6, 16, 16, 2, 2, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text('G', 17.5, 17.5);
+  doc.setFontSize(11);
+  doc.text('BN', 20, 16.5, { align: 'center' });
 
   // School Name
   doc.setFontSize(14);
-  doc.text('GREENWOOD ENTERPRISE ACADEMY', 32, 13);
+  doc.text('BN INTERNATIONAL ACADEMY', 32, 13);
 
   // Subtitle / Accreditation
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184); // slate-400
-  doc.text('Affiliated School Management System • Code: GIA-2026 • Verified Portal', 32, 19);
+  doc.text('Affiliated School Management System • Code: BNIA-2026 • Verified Portal', 32, 19);
 
   // Document Title Badge in Header
   doc.setFont('helvetica', 'bold');
@@ -85,7 +85,7 @@ const drawFooter = (doc: jsPDF, pageNum: number = 1) => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text('Greenwood Enterprise Academy • Confidential Academic Report', 12, pageHeight - 9);
+  doc.text('BN International Academy • Confidential Academic Report', 12, pageHeight - 9);
   doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { dateStyle: 'medium' })} • Page ${pageNum}`, 198, pageHeight - 9, { align: 'right' });
 };
 
@@ -218,7 +218,7 @@ export const generateStudentReportPDF = (data: StudentReportData): jsPDF => {
   doc.setFontSize(7);
   doc.setTextColor(29, 78, 216);
   doc.text('OFFICIAL SEAL', 105, sigY + 9, { align: 'center' });
-  doc.text('GIA VERIFIED', 105, sigY + 15, { align: 'center' });
+  doc.text('BNIA VERIFIED', 105, sigY + 15, { align: 'center' });
 
   // Principal Signature Line
   doc.line(140, sigY + 12, 190, sigY + 12);
@@ -252,11 +252,11 @@ export const generateTimetablePDF = (data: TimetableData): jsPDF => {
   doc.roundedRect(12, 6, 16, 16, 2, 2, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text('G', 17.5, 17.5);
+  doc.setFontSize(11);
+  doc.text('BN', 20, 16.5, { align: 'center' });
 
   doc.setFontSize(14);
-  doc.text('GREENWOOD ENTERPRISE ACADEMY', 32, 13);
+  doc.text('BN INTERNATIONAL ACADEMY', 32, 13);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
@@ -338,7 +338,7 @@ export const generateTimetablePDF = (data: TimetableData): jsPDF => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text(`Greenwood Enterprise Academy • ${data.className} Schedule`, 10, pageHeight - 7);
+  doc.text(`BN International Academy • ${data.className} Schedule`, 10, pageHeight - 7);
   doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { dateStyle: 'medium' })}`, 287, pageHeight - 7, { align: 'right' });
 
   return doc;
@@ -458,7 +458,7 @@ export const generateStudyMaterialPDF = (mat: StudyMaterial): jsPDF => {
     head: [['Attribute', 'Details', 'Author / Faculty', 'Upload Date']],
     body: [
       ['Resource Title', mat.title, mat.uploadedBy || 'Faculty Member', mat.uploadDate || '2026-07-28'],
-      ['Subject & Grade', `${mat.subjectName} (${mat.className || 'Class 10-A'})`, 'Greenwood Academy', 'Verified Resource'],
+      ['Subject & Grade', `${mat.subjectName} (${mat.className || 'Class 10-A'})`, 'BN International Academy', 'Verified Resource'],
       ['Document Format', `${mat.category} (${mat.fileName || 'Resource.pdf'})`, 'Academic Repository', 'Active Distribution']
     ],
     theme: 'striped',
@@ -599,7 +599,7 @@ export const generateStudyMaterialPDF = (mat: StudyMaterial): jsPDF => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text(`Authorized by: ${mat.uploadedBy || 'Prof. Robert Langdon'} • Greenwood Enterprise Academy Academic Board`, 16, currentY + 13);
+  doc.text(`Authorized by: ${mat.uploadedBy || 'Prof. Robert Langdon'} • BN International Academy Academic Board`, 16, currentY + 13);
 
   drawFooter(doc, 1);
 
@@ -772,7 +772,7 @@ export const generateAttendanceSummaryPDF = (data: AttendanceSummaryReportData):
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(100, 116, 139);
-  doc.text(`Recorded By: ${data.classTeacherName || 'Class Teacher'} • Greenwood Enterprise Academy Student Affairs`, 16, currentY + 12);
+  doc.text(`Recorded By: ${data.classTeacherName || 'Class Teacher'} • BN International Academy Student Affairs`, 16, currentY + 12);
 
   drawFooter(doc, 1);
 

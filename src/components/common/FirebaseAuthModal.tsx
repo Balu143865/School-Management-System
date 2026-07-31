@@ -29,7 +29,8 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
     signInWithFirebaseEmail,
     signUpWithFirebaseEmail,
     signInWithGoogleFirebase,
-    logout
+    logout,
+    demoLogin
   } = useAuth();
 
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
@@ -65,7 +66,7 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
       if (msg.includes('auth/operation-not-allowed')) {
         msg = 'Email/Password authentication is disabled in your Firebase console. We have automatically authenticated your account in local session mode so you can continue testing smoothly!';
         // Fallback demo login using the provided details
-        useAuth().demoLogin(selectedRole || 'admin');
+        demoLogin(selectedRole || 'admin');
         setSuccessMsg(`Signed in as ${name || email} (${selectedRole || 'admin'}) in fallback mode.`);
         setTimeout(() => onClose(), 1500);
         setLoading(false);
@@ -99,7 +100,7 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
       let msg = err.message || 'Google sign in failed. Please try again or use email sign in.';
       if (msg.includes('auth/operation-not-allowed')) {
         msg = 'Google provider is not enabled in Firebase Console. Authenticated via fallback session mode.';
-        useAuth().demoLogin('admin');
+        demoLogin('admin');
         setSuccessMsg('Authenticated as Admin via fallback mode.');
         setTimeout(() => onClose(), 1500);
         setLoading(false);

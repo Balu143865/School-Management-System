@@ -37,7 +37,7 @@ export const DigitalStudentIdModal: React.FC<DigitalStudentIdModalProps> = ({
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
 
-  const schoolName = schoolSettings?.name || 'Greenwood International Academy';
+  const schoolName = schoolSettings?.name || 'BN International Academy';
   const schoolAddress = schoolSettings?.address || 'Macherla, Palnadu, AP - 522426';
   const principalName = schoolSettings?.principalName || 'Dr. Balu Naik, B. Tech';
 

@@ -1,11 +1,11 @@
 {
   "schoolSettings": {
-    "name": "Greenwood International Academy",
-    "code": "GIA-2026",
+    "name": "BN International Academy",
+    "code": "BNIA-2026",
     "tagline": "Excellence in Education & Character Building",
     "address": "123 Academic Blvd, Innovation City, CA 90210",
     "phone": "+1 (555) 234-5678",
-    "email": "contact@greenwood.edu",
+    "email": "contact@bnacademy.edu",
     "academicYear": "2025-2026",
     "logo": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=200&q=80",
     "principalName": "Dr. Balu Naik, B. Tech",
@@ -476,7 +476,7 @@
       "senderName": "Dr. Balu Naik, B. Tech",
       "senderRole": "admin",
       "receiverRole": "all",
-      "text": "Welcome teachers, students, and parents to the Greenwood SMS Internal Portal!",
+      "text": "Welcome teachers, students, and parents to the BN International Academy SMS Internal Portal!",
       "timestamp": "2026-07-26 09:00",
       "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80"
     },
@@ -629,14 +629,14 @@
     {
       "id": "cal-8",
       "title": "Inter-School Basketball Championship Finals",
-      "description": "Greenwood Academy vs. St. Jude High School in the District Finals.",
+      "description": "BN International Academy vs. St. Jude High School in the District Finals.",
       "date": "2026-08-20",
       "startTime": "02:00 PM",
       "endTime": "05:00 PM",
       "type": "event",
       "targetRole": "all",
       "className": "All Classes",
-      "location": "Greenwood Central Indoor Arena",
+      "location": "BN International Academy Central Indoor Arena",
       "organizer": "Athletics Department"
     },
     {

@@ -88,7 +88,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
     message: ''
   });
 
-  const schoolName = schoolSettings?.schoolName || 'Greenwood International Academy';
+  const schoolName = schoolSettings?.schoolName || 'BN International Academy';
   const schoolTagline = schoolSettings?.tagline || 'Empowering Tomorrow\'s Global Leaders & Innovators';
 
   const handleRoleSelect = async (role: 'admin' | 'teacher' | 'student' | 'parent') => {
@@ -149,8 +149,8 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               <Phone className="w-3 h-3" /> +91 63040 45279
             </a>
             <span className="hidden md:inline opacity-40">•</span>
-            <a href="mailto:admissions@greenwood.edu" className="hover:underline flex items-center gap-1 opacity-90 hover:opacity-100">
-              <Mail className="w-3 h-3" /> admissions@greenwood.edu
+            <a href="mailto:admissions@bnacademy.edu" className="hover:underline flex items-center gap-1 opacity-90 hover:opacity-100">
+              <Mail className="w-3 h-3" /> admissions@bnacademy.edu
             </a>
           </div>
         </div>
@@ -849,7 +849,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                     : 'bg-amber-500/15 text-amber-900 border-amber-500/30'
                 }`}>
-                  Why Choose Greenwood?
+                  Why Choose BN International Academy?
                 </span>
               </div>
               <h2 className={`text-2xl sm:text-4xl font-black leading-tight ${
@@ -1372,7 +1372,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                 role: 'Grade 12 Student (Head Boy)',
                 tag: 'Robotics Team Lead',
                 avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80',
-                quote: 'The AI robotics lab and mentor support helped us win 1st place in the National STEM Innovation Challenge. Greenwood doesn’t just teach textbooks; it builds future leaders.',
+                quote: 'The AI robotics lab and mentor support helped us win 1st place in the National STEM Innovation Challenge. BN International Academy doesn’t just teach textbooks; it builds future leaders.',
                 rating: 5,
                 achievement: 'National STEM Champion 2026'
               },
@@ -1382,7 +1382,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                 role: 'Alumni Class of 2021',
                 tag: 'Stanford Biomedical Fellow',
                 avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=300&q=80',
-                quote: 'My foundation in advanced biology and research methods was built right here in Greenwood’s high-school labs. The rigor and global perspective gave me a huge edge in ivy league admissions.',
+                quote: 'My foundation in advanced biology and research methods was built right here in BN International Academy’s high-school labs. The rigor and global perspective gave me a huge edge in ivy league admissions.',
                 rating: 5,
                 achievement: 'Stanford Scholar & Author'
               },
@@ -1412,7 +1412,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                 role: 'Alumni Class of 2023',
                 tag: 'MIT Robotics Major',
                 avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-                quote: 'Greenwood fostered my passion for coding when I was in Grade 9. The teachers mentored me beyond class hours and helped me publish my first research paper before graduation.',
+                quote: 'BN International Academy fostered my passion for coding when I was in Grade 9. The teachers mentored me beyond class hours and helped me publish my first research paper before graduation.',
                 rating: 5,
                 achievement: 'MIT Scholar \'25'
               }
@@ -1521,7 +1521,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               },
               {
                 q: "Are academic or athletic scholarships available?",
-                a: "Yes, Greenwood Academy offers merit-based scholarships up to 50% tuition fee waiver for exceptional performers in national sports, STEM olympiads, and academic excellence."
+                a: "Yes, BN International Academy offers merit-based scholarships up to 50% tuition fee waiver for exceptional performers in national sports, STEM olympiads, and academic excellence."
               },
               {
                 q: "How can parents communicate directly with class teachers and subject faculty?",
@@ -1602,7 +1602,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                 </div>
 
                 <a
-                  href={`https://wa.me/916304045279?text=${encodeURIComponent(`Hello Greenwood Admissions Office, I would like to inquire about school admissions.`)}`}
+                  href={`https://wa.me/916304045279?text=${encodeURIComponent(`Hello BN International Academy Admissions Office, I would like to inquire about school admissions.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 ease-out transform hover:-translate-y-1 hover:scale-[1.01] shadow-md hover:shadow-xl hover:shadow-emerald-500/20 group ${
@@ -1901,7 +1901,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>admissions@greenwood.edu</span>
+                  <span>admissions@bnacademy.edu</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Clock className="w-4 h-4 text-emerald-400 shrink-0" />

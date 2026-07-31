@@ -112,15 +112,15 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={onGoToLandingPage}
-              className="w-7 h-7 bg-blue-600 hover:bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-xs shrink-0 transition cursor-pointer"
+              className="w-8 h-7 bg-blue-600 hover:bg-emerald-600 rounded-lg flex items-center justify-center text-white font-extrabold text-xs shadow-xs shrink-0 transition cursor-pointer tracking-wider"
               title="Return to Public School Website Landing Page"
             >
-              <GraduationCap className="w-4 h-4" />
+              BN
             </button>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm tracking-tight truncate max-w-[100px] xs:max-w-[140px] sm:max-w-none">
-                  {schoolSettings?.name || 'Greenwood Enterprise'}
+                <span className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm tracking-tight truncate max-w-[180px] sm:max-w-none">
+                  {schoolSettings?.name || 'BN International Academy'}
                 </span>
                 {schoolSettings?.isOtpVerified && (
                   <span className="hidden sm:inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded uppercase shrink-0">
@@ -469,7 +469,7 @@ export const Header: React.FC<HeaderProps> = ({
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
         documentType="general"
-        documentTitle="Greenwood_Scanned_Document"
+        documentTitle="BN_Academy_Scanned_Document"
       />
 
       {/* Notification Service Trigger Hub Modal */}

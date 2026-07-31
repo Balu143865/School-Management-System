@@ -41,7 +41,7 @@ export const ReportsView: React.FC = () => {
 
   const handleExportExecutivePdf = () => {
     const doc = generateExecutiveReportPDF(stats);
-    doc.save(`Greenwood_Executive_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+    doc.save(`BN_Academy_Executive_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   const handleExportStudentPdf = () => {

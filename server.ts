@@ -454,7 +454,7 @@ app.post('/api/ai/chat', async (req, res) => {
     const { prompt, userRole, context } = req.body;
     const ai = getGenAI();
 
-    const systemInstruction = `You are Greenwood Academy's Intelligent AI Assistant.
+    const systemInstruction = `You are BN International Academy's Intelligent AI Assistant.
 You assist school Admins, Teachers, Students, and Parents with high accuracy, clarity, and empathy.
 Role of current user: ${userRole || 'User'}.
 Context: ${JSON.stringify(context || {})}`;
@@ -507,7 +507,7 @@ app.post('/api/ai/fee-reminder', async (req, res) => {
     const { parentName, studentName, amount, dueDate, feeTitle } = req.body;
     const ai = getGenAI();
 
-    const prompt = `Draft a polite, professional, and clear fee payment reminder message from Greenwood Academy to parent "${parentName}" regarding student "${studentName}" for ${feeTitle} of $${amount} due on ${dueDate}. Include a friendly closing and contact details prompt.`;
+    const prompt = `Draft a polite, professional, and clear fee payment reminder message from BN International Academy to parent "${parentName}" regarding student "${studentName}" for ${feeTitle} of $${amount} due on ${dueDate}. Include a friendly closing and contact details prompt.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.6-flash',
@@ -517,7 +517,7 @@ app.post('/api/ai/fee-reminder', async (req, res) => {
     res.json({ reminderText: response.text });
   } catch (err) {
     res.json({
-      reminderText: `Dear ${req.body.parentName || 'Parent'},\n\nThis is a friendly reminder from Greenwood Academy regarding the pending fee payment for ${req.body.studentName || 'your child'} (${req.body.feeTitle || 'Tuition Fee'}) of $${req.body.amount || 0}, due on ${req.body.dueDate || 'due date'}.\n\nPlease arrange for payment at your earliest convenience. Feel free to contact our accounts section for support.\n\nWarm regards,\nSchool Administration`
+      reminderText: `Dear ${req.body.parentName || 'Parent'},\n\nThis is a friendly reminder from BN International Academy regarding the pending fee payment for ${req.body.studentName || 'your child'} (${req.body.feeTitle || 'Tuition Fee'}) of $${req.body.amount || 0}, due on ${req.body.dueDate || 'due date'}.\n\nPlease arrange for payment at your earliest convenience. Feel free to contact our accounts section for support.\n\nWarm regards,\nSchool Administration`
     });
   }
 });

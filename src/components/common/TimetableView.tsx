@@ -97,7 +97,7 @@ export const TimetableView: React.FC = () => {
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden print:border-slate-300 print:shadow-none print:m-0 print:w-full">
         <div className="p-3 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between text-xs gap-2 print:bg-slate-100">
           <span className="font-bold text-slate-800 flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 print:hidden" /> Greenwood Academy Official Schedule - {selectedClass}
+            <ShieldCheck className="w-4 h-4 text-emerald-600 print:hidden" /> BN International Academy Official Schedule - {selectedClass}
           </span>
           <div className="flex items-center gap-2">
             {lastCacheTime && (
