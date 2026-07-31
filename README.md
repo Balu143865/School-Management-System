@@ -1,5 +1,8 @@
 # 🎓 BN International Academy — School Management & ID Card Studio System
 
+- **Published URL**: [https://smartschool2026.ai.studio](https://smartschool2026.ai.studio)
+- **Render Deployed URL**: [https://school-management-system-o572.onrender.com/](https://school-management-system-o572.onrender.com/)
+
 An end-to-end, modern, responsive School Management & Digital ID Card Studio Application built with **React**, **TypeScript**, **Tailwind CSS**, and **Firebase**.
 
 ![School Management & ID Card Studio Banner](https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80)
