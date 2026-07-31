@@ -3,20 +3,18 @@ import heroBannerImg from '../../assets/images/school_hero_banner_1785341252398.
 import schoolBannerImg from '../../assets/images/school-banner.png';
 import principalBaluNaikImg from '../../assets/images/principal_balu_naik.jpg';
 import { principalImageBase64 } from '../../assets/images/principalImageData';
+import { schoolBannerBase64 } from '../../assets/images/schoolBannerData';
+
 const FALLBACK_SCHOOL_BANNER = "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=2000&q=80";
 
 // Primary resilient banner source that guarantees display across all hosting platforms (Render, Cloud Run, etc.)
-const primaryBannerSrc = schoolBannerImg || '/school-banner.png' || heroBannerImg || '/school-hero-banner.jpg' || FALLBACK_SCHOOL_BANNER;
+const primaryBannerSrc = schoolBannerBase64 || schoolBannerImg || '/school-banner.jpg' || '/school-banner.png' || FALLBACK_SCHOOL_BANNER;
 
 const handleBannerImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
   const target = e.currentTarget;
-  const currentSrc = target.src || '';
-  
-  if (currentSrc.includes('school-banner') && heroBannerImg) {
-    target.src = heroBannerImg;
-  } else if (!currentSrc.includes('school-hero-banner') && !currentSrc.includes('1785341252398')) {
-    target.src = '/school-hero-banner.jpg';
-  } else if (!currentSrc.includes('unsplash.com')) {
+  if (target.src !== schoolBannerBase64) {
+    target.src = schoolBannerBase64;
+  } else if (target.src !== FALLBACK_SCHOOL_BANNER) {
     target.src = FALLBACK_SCHOOL_BANNER;
   } else {
     target.onerror = null;
