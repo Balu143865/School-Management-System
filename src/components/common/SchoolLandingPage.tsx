@@ -162,24 +162,24 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
           {/* Brand Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 p-0.5 shadow-lg shadow-emerald-500/20 flex items-center justify-center">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 p-0.5 shadow-lg shadow-emerald-500/20 flex items-center justify-center shrink-0">
               <div className={`w-full h-full rounded-[14px] flex items-center justify-center ${
                 isDarkMode ? 'bg-slate-900' : 'bg-slate-100'
               }`}>
                 <GraduationCap className="w-6 h-6 text-emerald-500" />
               </div>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className={`font-extrabold text-base sm:text-lg tracking-tight ${
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h1 className={`font-extrabold text-base sm:text-lg tracking-tight leading-tight ${
                   isDarkMode ? 'text-white' : 'text-slate-900'
                 }`}>{schoolName}</h1>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 px-2 py-0.5 rounded-full shrink-0">
                   <ShieldCheck className="w-3 h-3" /> Accredited K-12
                 </span>
               </div>
-              <p className={`text-[11px] hidden sm:block ${
+              <p className={`text-[11px] hidden sm:block truncate mt-0.5 ${
                 isDarkMode ? 'text-slate-400' : 'text-slate-500'
               }`}>{schoolTagline}</p>
             </div>

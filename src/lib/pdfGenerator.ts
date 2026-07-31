@@ -778,3 +778,415 @@ export const generateAttendanceSummaryPDF = (data: AttendanceSummaryReportData):
 
   return doc;
 };
+
+export interface IdCardOptions {
+  schoolName?: string;
+  schoolAddress?: string;
+  principalName?: string;
+  phone?: string;
+  qrDataUrl?: string;
+  avatarDataUrl?: string;
+}
+
+/**
+ * Generate Printable Official ID Card PDF for Student or Teacher/Faculty
+ */
+export const generateIdCardPDF = (user: User, options?: IdCardOptions): jsPDF => {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const schoolName = options?.schoolName || 'BN INTERNATIONAL ACADEMY';
+  const schoolAddress = options?.schoolAddress || 'Macherla, Palnadu, AP - 522426';
+  const principalName = options?.principalName || 'Dr. Balu Naik, B. Tech';
+  const phone = options?.phone || '+91 63040 45279';
+
+  const isTeacher = user.role === 'teacher';
+  const titleText = isTeacher ? 'FACULTY & STAFF IDENTIFICATION PASS' : 'OFFICIAL STUDENT IDENTIFICATION PASS';
+
+  // 1. Draw Standard Header
+  drawLetterhead(doc, titleText, 'Printable High-Security ID Credentials');
+
+  // Page instruction
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(30, 41, 59);
+  doc.text('OFFICIAL PRINTABLE ID CARD CREDENTIALS (FRONT & BACK)', 12, 35);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Print on standard CR80 ID Card stock or cut along dashed guidelines for lamination.', 12, 40);
+
+  // Card dimensions: standard CR80 = 85.6mm x 54mm
+  const cardW = 85.6;
+  const cardH = 54;
+  const startY = 45;
+
+  // --- FRONT CARD (Left Side: X = 15) ---
+  const frontX = 15;
+
+  // Dashed cutting guide
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(203, 213, 225); // slate-300
+  doc.setLineDashPattern([2, 2], 0);
+  doc.rect(frontX - 1, startY - 1, cardW + 2, cardH + 2);
+  doc.setLineDashPattern([], 0); // reset dash
+
+  // Card Outer Container
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(226, 232, 240); // slate-200
+  doc.roundedRect(frontX, startY, cardW, cardH, 2, 2, 'FD');
+
+  // Card Header Bar (Navy Background)
+  doc.setFillColor(15, 23, 42); // slate-900
+  doc.roundedRect(frontX, startY, cardW, 12, 2, 2, 'F');
+  // Fill square corners at bottom of header
+  doc.rect(frontX, startY + 8, cardW, 4, 'F');
+
+  // Emblem "BN"
+  doc.setFillColor(37, 99, 235); // blue-600
+  doc.roundedRect(frontX + 2.5, startY + 2, 8, 8, 1.5, 1.5, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.text('BN', frontX + 6.5, startY + 7.5, { align: 'center' });
+
+  // School Name
+  doc.setFontSize(7);
+  doc.text(schoolName, frontX + 12.5, startY + 5.5);
+
+  // Subtitle
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(5);
+  doc.setTextColor(148, 163, 184); // slate-400
+  doc.text(isTeacher ? 'FACULTY & STAFF PASS • 2025-2026' : 'ACADEMIC STUDENT PASS • 2025-2026', frontX + 12.5, startY + 9);
+
+  // Active status pill
+  doc.setFillColor(16, 185, 129); // emerald-500
+  doc.roundedRect(frontX + cardW - 14, startY + 3.5, 11.5, 5, 1, 1, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(4.5);
+  doc.text('ACTIVE', frontX + cardW - 8.25, startY + 7, { align: 'center' });
+
+  // Photo / Avatar Box
+  const photoX = frontX + 3.5;
+  const photoY = startY + 14.5;
+  const photoW = 22;
+  const photoH = 26;
+
+  doc.setFillColor(isTeacher ? 238 : 241, isTeacher ? 242 : 245, isTeacher ? 255 : 249);
+  doc.setDrawColor(isTeacher ? 99 : 79, isTeacher ? 102 : 70, isTeacher ? 241 : 229);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(photoX, photoY, photoW, photoH, 1.5, 1.5, 'FD');
+
+  if (options?.avatarDataUrl) {
+    try {
+      doc.addImage(options.avatarDataUrl, 'JPEG', photoX + 0.5, photoY + 0.5, photoW - 1, photoH - 5);
+    } catch (e) {
+      console.warn('Could not add avatar image to PDF:', e);
+      const initials = user.name
+        ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+        : 'ID';
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(isTeacher ? 79 : 37, isTeacher ? 70 : 99, isTeacher ? 229 : 235);
+      doc.text(initials, photoX + photoW / 2, photoY + photoH / 2 + 1.5, { align: 'center' });
+    }
+  } else {
+    // Initials Silhouette
+    const initials = user.name
+      ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+      : 'ID';
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(isTeacher ? 79 : 37, isTeacher ? 70 : 99, isTeacher ? 229 : 235);
+    doc.text(initials, photoX + photoW / 2, photoY + photoH / 2 + 1.5, { align: 'center' });
+  }
+
+  // Role Badge below photo
+  doc.setFillColor(isTeacher ? 37 : 16, isTeacher ? 99 : 185, isTeacher ? 235 : 129);
+  doc.roundedRect(photoX, photoY + photoH - 4.5, photoW, 4.5, 0.5, 0.5, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(4.5);
+  doc.text(isTeacher ? 'FACULTY' : 'STUDENT', photoX + photoW / 2, photoY + photoH - 1.5, { align: 'center' });
+
+  // Details Grid (Right of photo)
+  const infoX = frontX + 28;
+  let infoY = startY + 16.5;
+
+  // Name
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 23, 42);
+  const truncatedName = user.name.length > 20 ? user.name.substring(0, 19) + '…' : user.name;
+  doc.text(truncatedName, infoX, infoY);
+
+  infoY += 4;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(5.5);
+  doc.setTextColor(isTeacher ? 37 : 79, isTeacher ? 99 : 70, isTeacher ? 235 : 229);
+  const idVal = isTeacher ? (user.studentId || `FAC-2026-${user.id || '042'}`) : (user.studentId || `STU-2026-${user.id || '1084'}`);
+  doc.text(`ID: ${idVal}`, infoX, infoY);
+
+  infoY += 3.5;
+  // Detail table inside card
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(5);
+  doc.setTextColor(100, 116, 139);
+
+  if (isTeacher) {
+    doc.text('SUBJECT:', infoX, infoY);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text((user.subject || 'Mathematics & Science').substring(0, 18), infoX + 12, infoY);
+
+    infoY += 3;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('CLASS/DEPT:', infoX, infoY);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text(user.className || 'Senior Secondary', infoX + 15, infoY);
+
+    infoY += 3;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('PHONE:', infoX, infoY);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text(user.phone || '+91 63040 45279', infoX + 10, infoY);
+
+    infoY += 3;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('EMAIL:', infoX, infoY);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    const truncEmail = (user.email || 'faculty@bnia.edu.in').substring(0, 20);
+    doc.text(truncEmail, infoX + 9, infoY);
+  } else {
+    doc.text('CLASS / SEC:', infoX, infoY);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text(user.className || 'Class 10-A', infoX + 15, infoY);
+
+    infoY += 3;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('ROLL NO:', infoX, infoY);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text(user.rollNo || '04', infoX + 11, infoY);
+
+    infoY += 3;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('BLOOD GRP:', infoX, infoY);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(225, 29, 72); // rose-600
+    doc.text('O+', infoX + 15, infoY);
+
+    infoY += 3;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('PARENT:', infoX, infoY);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    const parentTrunc = (user.parentName || 'David Rivers').substring(0, 16);
+    doc.text(parentTrunc, infoX + 11, infoY);
+  }
+
+  // QR Code on Front Card bottom right
+  if (options?.qrDataUrl) {
+    try {
+      doc.addImage(options.qrDataUrl, 'PNG', frontX + cardW - 16, startY + cardH - 16, 13, 13);
+    } catch (e) {
+      console.warn('Could not render QR image in PDF', e);
+    }
+  }
+
+  // Bottom Security Line
+  doc.setDrawColor(226, 232, 240);
+  doc.line(frontX + 2, startY + cardH - 4.5, frontX + cardW - 17, startY + cardH - 4.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(4);
+  doc.setTextColor(100, 116, 139);
+  doc.text('SECURE CRYPTOGRAPHICALLY SIGNED DIGITAL ID PASS', frontX + 3, startY + cardH - 2);
+
+
+  // --- BACK CARD (Right Side: X = 110) ---
+  const backX = 110;
+
+  // Dashed cutting guide
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineDashPattern([2, 2], 0);
+  doc.rect(backX - 1, startY - 1, cardW + 2, cardH + 2);
+  doc.setLineDashPattern([], 0);
+
+  // Card Outer Container
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(backX, startY, cardW, cardH, 2, 2, 'FD');
+
+  // Card Header Bar (Navy Background)
+  doc.setFillColor(15, 23, 42);
+  doc.roundedRect(backX, startY, cardW, 10, 2, 2, 'F');
+  doc.rect(backX, startY + 6, cardW, 4, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text('EMERGENCY CONTACTS & TERMS OF USE', backX + 4, startY + 6.5);
+
+  let backY = startY + 14;
+
+  // Contact Box
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(backX + 3, backY, cardW - 6, 10, 1, 1, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('SCHOOL HELPLINE & EMERGENCY CONTACT', backX + 5, backY + 3.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`Phone: ${phone} • Email: info@bnia.edu.in`, backX + 5, backY + 7.5);
+
+  backY += 12;
+
+  // Address Box
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('CAMPUS ADDRESS:', backX + 3, backY);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(5.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(schoolAddress, backX + 3, backY + 3.5);
+
+  backY += 8;
+
+  // Terms Box
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(4.5);
+  doc.setTextColor(100, 116, 139);
+  const termsText = "This card is official institutional property. If found, please return to BN International Academy Admin Office. Non-transferable.";
+  doc.text(termsText, backX + 3, backY, { maxWidth: cardW - 6 });
+
+  // Signature & Seal Section
+  backY = startY + cardH - 12;
+
+  doc.setDrawColor(203, 213, 225);
+  doc.line(backX + 4, backY + 6, backX + 38, backY + 6);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(principalName, backX + 4, backY + 8.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(4);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Principal & Chief Administrator', backX + 4, backY + 11);
+
+  // Seal Emblem
+  doc.setDrawColor(37, 99, 235);
+  doc.setFillColor(239, 246, 255);
+  doc.circle(backX + cardW - 12, backY + 5, 5.5, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(3.5);
+  doc.setTextColor(37, 99, 235);
+  doc.text('OFFICIAL', backX + cardW - 12, backY + 4, { align: 'center' });
+  doc.text('SEAL', backX + cardW - 12, backY + 6.5, { align: 'center' });
+
+
+  // --- SECTION 2: Full Detailed Information Sheet / Certificate below cards ---
+  const sheetY = startY + cardH + 12;
+
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(12, sheetY, 186, 115, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text('INSTITUTIONAL MEMBER IDENTITY DOSSIER', 18, sheetY + 10);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Cryptographically verified institutional credential registry record', 18, sheetY + 15);
+
+  doc.setDrawColor(226, 232, 240);
+  doc.line(18, sheetY + 18, 192, sheetY + 18);
+
+  // Two Column Record Table
+  let rowY = sheetY + 25;
+
+  const drawRow = (label1: string, val1: string, label2: string, val2: string) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text(label1, 18, rowY);
+    doc.text(label2, 105, rowY);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text(val1, 52, rowY);
+    doc.text(val2, 138, rowY);
+
+    doc.setDrawColor(241, 245, 249);
+    doc.line(18, rowY + 2, 192, rowY + 2);
+    rowY += 8;
+  };
+
+  drawRow('Full Name:', user.name, 'Role Designation:', isTeacher ? 'Faculty & Teaching Staff' : 'Enrolled Student');
+  drawRow('Member ID:', idVal, 'Academic Year:', '2025-2026');
+  drawRow(isTeacher ? 'Subject Specialization:' : 'Class & Section:', isTeacher ? (user.subject || 'Mathematics') : (user.className || 'Class 10-A'), 'Account Email:', user.email);
+  drawRow(isTeacher ? 'Contact Phone:' : 'Roll Number:', isTeacher ? (user.phone || '+91 63040 45279') : (user.rollNo || '04'), 'Phone Number:', user.phone || '+91 63040 45279');
+  drawRow('Parent / Guardian:', user.parentName || 'David Rivers', 'Security Token:', `VERIFY_${idVal}`);
+
+  // QR Box in Dossier
+  if (options?.qrDataUrl) {
+    try {
+      doc.addImage(options.qrDataUrl, 'PNG', 158, sheetY + 70, 24, 24);
+    } catch (e) {
+      console.warn('QR error in dossier', e);
+    }
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(37, 99, 235);
+  doc.text('SECURITY & COMPLIANCE VERIFICATION', 18, sheetY + 70);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text('• Digital signature verified against BNIA Firestore Authentication Database.', 18, sheetY + 76);
+  doc.text('• Approved for access to campus facilities, library services, and digital portals.', 18, sheetY + 81);
+  doc.text('• Authorized by Office of Student Affairs & Chief Administrator.', 18, sheetY + 86);
+
+  // Signature line
+  doc.line(18, sheetY + 102, 70, sheetY + 102);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(principalName, 18, sheetY + 106);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Principal / Chief Administrator', 18, sheetY + 109.5);
+
+  drawFooter(doc, 1);
+
+  return doc;
+};

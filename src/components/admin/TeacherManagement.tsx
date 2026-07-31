@@ -4,7 +4,9 @@ import { api } from '../../lib/api';
 import { DataTable, Column } from '../common/DataTable';
 import { Modal } from '../common/Modal';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
-import { UserCheck, Trash2, Upload, Image as ImageIcon, X } from 'lucide-react';
+import { DigitalStudentIdModal } from '../common/DigitalStudentIdModal';
+import { generateIdCardPDF } from '../../lib/pdfGenerator';
+import { UserCheck, Trash2, Upload, Image as ImageIcon, X, QrCode, FileText } from 'lucide-react';
 
 const PRESET_AVATARS = [
   'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80',
@@ -20,6 +22,8 @@ export const TeacherManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedTeacherForId, setSelectedTeacherForId] = useState<User | null>(null);
+  const [isIdModalOpen, setIsIdModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -142,13 +146,38 @@ export const TeacherManagement: React.FC = () => {
         onAddClick={() => setIsModalOpen(true)}
         addLabel="Add Faculty Member"
         actions={(item) => (
-          <button
-            onClick={() => setDeleteTarget(item)}
-            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
-            title="Delete Faculty Member"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          <div className="flex items-center justify-end gap-1">
+            <button
+              onClick={() => {
+                setSelectedTeacherForId(item);
+                setIsIdModalOpen(true);
+              }}
+              className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition cursor-pointer"
+              title="View Digital Faculty ID Pass with QR Code"
+            >
+              <QrCode className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => {
+                const doc = generateIdCardPDF(item, {
+                  schoolName: 'BN INTERNATIONAL ACADEMY',
+                  phone: item.phone || '+91 63040 45279'
+                });
+                doc.save(`${item.name.replace(/\s+/g, '_')}_Faculty_ID_Card.pdf`);
+              }}
+              className="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition cursor-pointer"
+              title="Download Printable Faculty ID Card PDF"
+            >
+              <FileText className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setDeleteTarget(item)}
+              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+              title="Delete Faculty Member"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         )}
       />
 
@@ -161,6 +190,13 @@ export const TeacherManagement: React.FC = () => {
         itemName={deleteTarget?.name}
         description={`Are you sure you want to remove ${deleteTarget?.name || 'this teacher'} from the faculty registry?`}
         isLoading={isDeleting}
+      />
+
+      {/* Digital Faculty ID Modal */}
+      <DigitalStudentIdModal
+        isOpen={isIdModalOpen}
+        onClose={() => setIsIdModalOpen(false)}
+        student={selectedTeacherForId}
       />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Faculty Member">

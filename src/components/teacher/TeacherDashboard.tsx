@@ -15,9 +15,11 @@ import {
   UserCheck,
   UserX,
   UserMinus,
-  ChevronRight
+  ChevronRight,
+  QrCode
 } from 'lucide-react';
 import { Homework, ClassRoom } from '../../types';
+import { DigitalStudentIdModal } from '../common/DigitalStudentIdModal';
 
 interface Props {
   setActiveTab: (tab: string) => void;
@@ -27,6 +29,7 @@ export const TeacherDashboard: React.FC<Props> = ({ setActiveTab }) => {
   const { user } = useAuth();
   const [homeworkList, setHomeworkList] = useState<Homework[]>([]);
   const [classes, setClasses] = useState<ClassRoom[]>([]);
+  const [isDigitalIdOpen, setIsDigitalIdOpen] = useState(false);
   const [todayAttendance, setTodayAttendance] = useState<{
     present: number;
     absent: number;
@@ -106,14 +109,30 @@ export const TeacherDashboard: React.FC<Props> = ({ setActiveTab }) => {
             Assigned: <span className="font-semibold text-white">{user?.className || 'Class 10-A'}</span> • {user?.subject || 'Mathematics & Physics'}
           </p>
         </div>
-        <button
-          onClick={() => setActiveTab('ai-assistant')}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-xl text-xs transition shadow-md shrink-0"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>AI Quiz Builder</span>
-        </button>
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <button
+            onClick={() => setIsDigitalIdOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl text-xs transition shadow-md cursor-pointer"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>Faculty ID Pass</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ai-assistant')}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-xl text-xs transition shadow-md shrink-0 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>AI Quiz Builder</span>
+          </button>
+        </div>
       </div>
+
+      <DigitalStudentIdModal
+        isOpen={isDigitalIdOpen}
+        onClose={() => setIsDigitalIdOpen(false)}
+        student={user}
+      />
 
       {/* Today's Student Attendance Summary Cards */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3.5">

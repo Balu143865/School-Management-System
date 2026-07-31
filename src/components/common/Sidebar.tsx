@@ -21,7 +21,8 @@ import {
   ShieldCheck,
   TrendingUp,
   X,
-  Globe
+  Globe,
+  QrCode
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -49,6 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'teacher':
         return [
           { id: 'dashboard', label: t('nav.dashboard', 'Teacher Dashboard'), icon: LayoutDashboard },
+          { id: 'id-cards', label: t('nav.idCards', 'ID Card Studio'), icon: QrCode, badge: 'Studio' },
           { id: 'library', label: t('nav.library', 'Library Catalog'), icon: BookMarked, badge: 'Books' },
           { id: 'performance', label: t('nav.performance', 'Performance Overview'), icon: TrendingUp, badge: 'D3' },
           { id: 'calendar', label: t('nav.calendar', 'School Calendar'), icon: Calendar, badge: 'Events' },
@@ -65,6 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'student':
         return [
           { id: 'dashboard', label: t('nav.dashboard', 'Student Dashboard'), icon: LayoutDashboard },
+          { id: 'id-cards', label: t('nav.idCards', 'ID Card Pass'), icon: QrCode, badge: 'Card' },
           { id: 'library', label: t('nav.library', 'School Library'), icon: BookMarked },
           { id: 'calendar', label: t('nav.calendar', 'School Calendar'), icon: Calendar },
           { id: 'attendance', label: t('nav.attendance', 'Attendance Tracking'), icon: CalendarCheck },
@@ -80,6 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'parent':
         return [
           { id: 'dashboard', label: t('nav.dashboard', 'Parent Dashboard'), icon: LayoutDashboard },
+          { id: 'id-cards', label: t('nav.idCards', 'Student ID Pass'), icon: QrCode },
           { id: 'library', label: t('nav.library', 'Library & Books'), icon: BookMarked },
           { id: 'calendar', label: t('nav.calendar', 'School Calendar'), icon: Calendar },
           { id: 'attendance', label: t('nav.attendance', 'Child Attendance'), icon: CalendarCheck },
@@ -94,6 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       default:
         return [
           { id: 'dashboard', label: t('nav.dashboard', 'Overview Dashboard'), icon: LayoutDashboard },
+          { id: 'id-cards', label: t('nav.idCards', 'ID Card Studio'), icon: QrCode, badge: 'Studio' },
           { id: 'library', label: t('nav.library', 'Library Management'), icon: BookMarked, badge: 'New' },
           { id: 'performance', label: t('nav.performance', 'Performance Overview'), icon: TrendingUp, badge: 'D3' },
           { id: 'calendar', label: t('nav.calendar', 'School Calendar'), icon: Calendar, badge: 'Shared' },

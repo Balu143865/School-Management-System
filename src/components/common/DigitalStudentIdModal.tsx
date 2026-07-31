@@ -15,11 +15,14 @@ import {
   Building2,
   Sparkles,
   FileCheck,
-  AlertCircle
+  AlertCircle,
+  Printer,
+  FileText
 } from 'lucide-react';
 import { Modal } from './Modal';
 import { User, SchoolSettings } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { generateIdCardPDF } from '../../lib/pdfGenerator';
 
 interface DigitalStudentIdModalProps {
   isOpen: boolean;
@@ -35,32 +38,38 @@ export const DigitalStudentIdModal: React.FC<DigitalStudentIdModalProps> = ({
   const { schoolSettings } = useAuth();
   const [isFlipped, setIsFlipped] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [avatarDataUrl, setAvatarDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
 
   const schoolName = schoolSettings?.name || 'BN International Academy';
   const schoolAddress = schoolSettings?.address || 'Macherla, Palnadu, AP - 522426';
   const principalName = schoolSettings?.principalName || 'Dr. Balu Naik, B. Tech';
 
+  const isTeacher = student?.role === 'teacher';
+
   // Fallback defaults for rich ID details
-  const studentName = student?.name || 'Alexandria Rivers';
-  const studentId = student?.studentId || `STU-2026-${student?.id || '1084'}`;
-  const className = student?.className || 'Class 10-A';
+  const userName = student?.name || 'Alexandria Rivers';
+  const userId = student?.studentId || (isTeacher ? `FAC-2026-${student?.id || '042'}` : `STU-2026-${student?.id || '1084'}`);
+  const className = student?.className || (isTeacher ? 'Senior Secondary' : 'Class 10-A');
   const rollNo = student?.rollNo || '04';
-  const gender = student?.gender || 'Female';
   const phone = student?.phone || '+91 63040 45279';
+  const subject = student?.subject || 'Mathematics & Physics';
   const bloodGroup = 'O+';
   const dateOfBirth = student?.dateOfBirth || '2010-05-14';
   const parentName = student?.parentName || 'David Rivers';
   const emergencyPhone = '+91 63040 45279';
-  const avatarUrl = student?.avatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80';
+  const avatarUrl = student?.avatar || (isTeacher
+    ? 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&q=80'
+    : 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80');
 
-  const verifyToken = `VERIFY_STU_${studentId}_HASH_${student?.id || '8839'}`;
+  const verifyToken = `VERIFY_${isTeacher ? 'FAC' : 'STU'}_${userId}_HASH_${student?.id || '8839'}`;
 
   useEffect(() => {
     if (student || isOpen) {
       const payload = JSON.stringify({
-        id: studentId,
-        name: studentName,
+        id: userId,
+        name: userName,
+        role: student?.role || 'student',
         class: className,
         school: schoolName,
         issued: '2025-2026',
@@ -77,8 +86,28 @@ export const DigitalStudentIdModal: React.FC<DigitalStudentIdModalProps> = ({
       })
         .then((url) => setQrDataUrl(url))
         .catch((err) => console.error('QR code generation error:', err));
+
+      if (avatarUrl) {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || 200;
+            canvas.height = img.naturalHeight || 240;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0);
+              setAvatarDataUrl(canvas.toDataURL('image/jpeg', 0.9));
+            }
+          } catch (e) {
+            console.warn('Avatar base64 conversion failed:', e);
+          }
+        };
+        img.src = avatarUrl;
+      }
     }
-  }, [student, isOpen, schoolName]);
+  }, [student, isOpen, schoolName, isTeacher, userId, userName, className, verifyToken, avatarUrl]);
 
   const handleCopyToken = () => {
     navigator.clipboard.writeText(verifyToken);
@@ -90,10 +119,29 @@ export const DigitalStudentIdModal: React.FC<DigitalStudentIdModalProps> = ({
     window.print();
   };
 
+  const handleDownloadPdf = () => {
+    if (!student) return;
+    const doc = generateIdCardPDF(student, {
+      schoolName,
+      schoolAddress,
+      principalName,
+      phone: student.phone || '+91 63040 45279',
+      qrDataUrl,
+      avatarDataUrl
+    });
+    const filename = `${student.name.replace(/\s+/g, '_')}_${isTeacher ? 'Faculty' : 'Student'}_ID_Card.pdf`;
+    doc.save(filename);
+  };
+
   if (!student && !isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Digital Student Identification Pass" maxWidth="max-w-md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isTeacher ? "Digital Faculty Identification Pass" : "Digital Student Identification Pass"}
+      maxWidth="max-w-md"
+    >
       <div className="space-y-4">
         {/* Controls Toolbar */}
         <div className="flex items-center justify-between bg-slate-100 p-1.5 rounded-xl text-xs font-semibold">
@@ -136,7 +184,7 @@ export const DigitalStudentIdModal: React.FC<DigitalStudentIdModalProps> = ({
                       {schoolName}
                     </h3>
                     <p className="text-[10px] text-indigo-300 font-medium tracking-wider uppercase flex items-center gap-1">
-                      <span>Official Digital Student Pass</span>
+                      <span>{isTeacher ? 'Official Faculty Pass' : 'Official Student Pass'}</span>
                       <span>•</span>
                       <span className="text-emerald-400 font-bold">2025-2026</span>
                     </p>
@@ -149,48 +197,69 @@ export const DigitalStudentIdModal: React.FC<DigitalStudentIdModalProps> = ({
                 </div>
               </div>
 
-              {/* Student Details Grid */}
+              {/* Student/Teacher Details Grid */}
               <div className="flex gap-4 items-center">
                 <div className="relative shrink-0">
                   <img
                     src={avatarUrl}
-                    alt={studentName}
+                    alt={userName}
                     referrerPolicy="no-referrer"
                     onError={(e) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80";
+                      e.currentTarget.src = isTeacher
+                        ? "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80"
+                        : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80";
                     }}
                     className="w-20 h-24 rounded-2xl object-cover border-2 border-indigo-400/50 shadow-md"
                   />
-                  <div className="absolute -bottom-2 -right-1 bg-indigo-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-white shadow-2xs">
-                    STU ID
+                  <div className={`absolute -bottom-2 -right-1 ${isTeacher ? 'bg-amber-600' : 'bg-indigo-600'} text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-white shadow-2xs`}>
+                    {isTeacher ? 'FACULTY' : 'STUDENT'}
                   </div>
                 </div>
 
                 <div className="space-y-1 text-xs flex-1">
                   <h4 className="font-extrabold text-base text-white tracking-tight leading-tight">
-                    {studentName}
+                    {userName}
                   </h4>
                   <p className="text-[11px] font-mono font-bold text-indigo-300">
-                    ID: {studentId}
+                    ID: {userId}
                   </p>
                   
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] pt-1">
-                    <div>
-                      <span className="text-slate-400 text-[9px] block uppercase font-semibold">Class / Section</span>
-                      <span className="font-bold text-slate-100">{className}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 text-[9px] block uppercase font-semibold">Roll No</span>
-                      <span className="font-bold text-slate-100">{rollNo}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 text-[9px] block uppercase font-semibold">Blood Group</span>
-                      <span className="font-bold text-rose-400">{bloodGroup}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 text-[9px] block uppercase font-semibold">D.O.B</span>
-                      <span className="font-bold text-slate-100">{dateOfBirth}</span>
-                    </div>
+                    {isTeacher ? (
+                      <>
+                        <div className="col-span-2">
+                          <span className="text-slate-400 text-[9px] block uppercase font-semibold">Subject Specialization</span>
+                          <span className="font-bold text-slate-100">{subject}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[9px] block uppercase font-semibold">Class Assigned</span>
+                          <span className="font-bold text-slate-100">{className}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[9px] block uppercase font-semibold">Contact Phone</span>
+                          <span className="font-bold text-slate-100">{phone}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <span className="text-slate-400 text-[9px] block uppercase font-semibold">Class / Section</span>
+                          <span className="font-bold text-slate-100">{className}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[9px] block uppercase font-semibold">Roll No</span>
+                          <span className="font-bold text-slate-100">{rollNo}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[9px] block uppercase font-semibold">Blood Group</span>
+                          <span className="font-bold text-rose-400">{bloodGroup}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[9px] block uppercase font-semibold">D.O.B</span>
+                          <span className="font-bold text-slate-100">{dateOfBirth}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -274,21 +343,31 @@ export const DigitalStudentIdModal: React.FC<DigitalStudentIdModalProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2 pt-2">
+        <div className="flex flex-col sm:flex-row items-center gap-2 pt-2">
           <button
             onClick={handleCopyToken}
-            className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5"
+            className="w-full sm:w-auto flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+            {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-500" />}
             <span>{copied ? 'Copied Token' : 'Copy Verification QR Token'}</span>
           </button>
 
           <button
-            onClick={handlePrintCard}
-            className="py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs"
+            onClick={handleDownloadPdf}
+            className="w-full sm:w-auto py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+            title="Download printable high-resolution PDF ID card pass"
           >
             <Download className="w-4 h-4" />
-            <span>Print ID</span>
+            <span>Download PDF</span>
+          </button>
+
+          <button
+            onClick={handlePrintCard}
+            className="w-full sm:w-auto py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+            title="Print directly from browser"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Print</span>
           </button>
         </div>
       </div>
