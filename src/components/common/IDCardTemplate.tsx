@@ -21,8 +21,11 @@ export interface IDCardTemplateProps {
   user?: User;
   person?: User;
   schoolSettings?: Partial<SchoolSettings>;
+  schoolLogo?: string;
+  primaryColor?: string;
   showControls?: boolean;
   showBackSide?: boolean;
+  viewSide?: 'both' | 'front' | 'back';
   onDownloadPdf?: () => void;
   onPrint?: () => void;
   className?: string;
@@ -40,7 +43,7 @@ const convertImageToBase64 = (url: string): Promise<string> => {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0);
-          const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+          const dataURL = canvas.toDataURL('image/png', 0.9);
           resolve(dataURL);
         } else {
           resolve('');
@@ -59,14 +62,18 @@ export const IDCardTemplate: React.FC<IDCardTemplateProps> = ({
   user,
   person,
   schoolSettings,
+  schoolLogo,
+  primaryColor,
   showControls = true,
   showBackSide = true,
+  viewSide = 'both',
   onDownloadPdf,
   onPrint,
   className = ''
 }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [avatarDataUrl, setAvatarDataUrl] = useState<string>('');
+  const [logoDataUrl, setLogoDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
 
   // Allow either user or person prop
@@ -82,11 +89,14 @@ export const IDCardTemplate: React.FC<IDCardTemplateProps> = ({
 
   const isTeacher = activeUser.role === 'teacher';
 
-  // School metadata
+  // School metadata & custom branding
   const schoolName = schoolSettings?.name || 'BN International Academy';
   const schoolAddress = schoolSettings?.address || 'Macherla, Palnadu, AP - 522426';
   const principalName = schoolSettings?.principalName || 'Dr. Balu Naik, B. Tech';
   const phone = activeUser.phone || schoolSettings?.phone || '+91 63040 45279';
+
+  const brandColor = primaryColor || schoolSettings?.primaryColor || '#0F172A';
+  const logoUrl = schoolLogo || schoolSettings?.logo;
 
   // ID Details
   const idValue = activeUser.studentId || (isTeacher ? `FAC-2026-${activeUser.id || '042'}` : `STU-2026-${activeUser.id || '1084'}`);
@@ -124,7 +134,16 @@ export const IDCardTemplate: React.FC<IDCardTemplateProps> = ({
           if (base64) setAvatarDataUrl(base64);
         });
     }
-  }, [activeUser, idValue, classNameVal, schoolName, academicYear, verifyToken, avatarUrl]);
+
+    if (logoUrl) {
+      convertImageToBase64(logoUrl)
+        .then(base64 => {
+          if (base64) setLogoDataUrl(base64);
+        });
+    } else {
+      setLogoDataUrl('');
+    }
+  }, [activeUser, idValue, classNameVal, schoolName, academicYear, verifyToken, avatarUrl, logoUrl]);
 
   const handleCopyToken = () => {
     navigator.clipboard.writeText(verifyToken);
@@ -142,7 +161,9 @@ export const IDCardTemplate: React.FC<IDCardTemplateProps> = ({
         principalName,
         phone,
         qrDataUrl,
-        avatarDataUrl
+        avatarDataUrl,
+        schoolLogoDataUrl: logoDataUrl,
+        primaryColor: brandColor
       });
       const roleName = isTeacher ? 'Faculty' : 'Student';
       doc.save(`${activeUser.name.replace(/\s+/g, '_')}_${roleName}_ID_Card.pdf`);
@@ -202,19 +223,37 @@ export const IDCardTemplate: React.FC<IDCardTemplateProps> = ({
       )}
 
       {/* ID Cards Container (Front & Back) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+      <div className={`grid gap-4 items-start ${viewSide === 'both' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 max-w-md mx-auto w-full'}`}>
         {/* FRONT CARD */}
-        <div className="relative bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-4 shadow-xl border border-indigo-500/30 overflow-hidden flex flex-col justify-between min-h-[220px]">
+        {(viewSide === 'both' || viewSide === 'front') && (
+        <div
+          className="relative text-white rounded-2xl p-4 shadow-xl border overflow-hidden flex flex-col justify-between min-h-[220px]"
+          style={{
+            background: `linear-gradient(135deg, ${brandColor} 0%, #0F172A 100%)`,
+            borderColor: `${brandColor}66`
+          }}
+        >
           {/* Background Decorative Ripples */}
-          <div className="absolute -top-12 -right-12 w-36 h-36 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -top-12 -right-12 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none" />
 
           {/* Card Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-indigo-500/30 relative z-10">
+          <div className="flex items-center justify-between pb-3 border-b border-white/20 relative z-10">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-extrabold text-xs text-white shadow-xs tracking-wider shrink-0">
-                BN
-              </div>
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt="School Logo"
+                  className="w-9 h-8 rounded-lg object-contain bg-white/15 p-1 border border-white/30 shadow-xs shrink-0"
+                />
+              ) : (
+                <div
+                  className="w-9 h-8 rounded-lg flex items-center justify-center font-extrabold text-xs text-white shadow-xs tracking-wider shrink-0 border border-white/20"
+                  style={{ backgroundColor: brandColor }}
+                >
+                  BN
+                </div>
+              )}
               <div>
                 <h3 className="font-extrabold text-xs text-white tracking-tight uppercase leading-tight">
                   {schoolName}
@@ -309,9 +348,10 @@ export const IDCardTemplate: React.FC<IDCardTemplateProps> = ({
             )}
           </div>
         </div>
+        )}
 
         {/* BACK CARD */}
-        {showBackSide && (
+        {(viewSide === 'both' || viewSide === 'back') && showBackSide && (
           <div className="relative bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl p-4 shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col justify-between min-h-[220px]">
             <div>
               {/* Back Header */}

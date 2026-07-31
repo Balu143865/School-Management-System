@@ -42,6 +42,8 @@ import { PerformanceOverview } from './components/common/PerformanceOverview';
 import { LibraryManager } from './components/library/LibraryManager';
 import { KeyboardShortcutManager } from './components/common/KeyboardShortcutManager';
 import { SchoolLandingPage } from './components/common/SchoolLandingPage';
+import { IDCardStudioView } from './components/common/IDCardStudioView';
+import { ReadmeDocView } from './components/common/ReadmeDocView';
 
 function MainAppContent() {
   const { user } = useAuth();
@@ -147,6 +149,12 @@ function MainAppContent() {
 
       case 'library':
         return <LibraryManager />;
+
+      case 'id-cards':
+        return <IDCardStudioView />;
+
+      case 'readme':
+        return <ReadmeDocView />;
 
       default:
         return <AdminDashboard setActiveTab={setActiveTab} onOpenRegisterSchool={() => setIsRegisterSchoolOpen(true)} />;

@@ -14,7 +14,12 @@ import {
   ShieldCheck,
   Search,
   Building2,
-  FileText
+  FileText,
+  Eraser,
+  RotateCcw,
+  Trash2,
+  Eye,
+  LayoutGrid
 } from 'lucide-react';
 import { User } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -110,8 +115,120 @@ export const IDCardStudioView: React.FC = () => {
   const [customSchoolName, setCustomSchoolName] = useState(schoolSettings?.name || 'BN International Academy');
   const [customPrincipal, setCustomPrincipal] = useState(schoolSettings?.principalName || 'Dr. Balu Naik, B. Tech');
 
+  // Custom Branding States
+  const [primaryColor, setPrimaryColor] = useState<string>(schoolSettings?.primaryColor || '#0F172A');
+  const [schoolLogo, setSchoolLogo] = useState<string>(schoolSettings?.logo || '');
+  const [logoBase64, setLogoBase64] = useState<string>('');
+
   // Selected existing user for preview in Students / Teachers tab
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  // Preview Side Toggle ('both' | 'front' | 'back')
+  const [previewSide, setPreviewSide] = useState<'both' | 'front' | 'back'>('both');
+
+  // Preset Brand Color Palette
+  const COLOR_PALETTE = [
+    { name: 'Navy Slate', hex: '#0F172A', bg: 'bg-slate-900' },
+    { name: 'Royal Blue', hex: '#1E40AF', bg: 'bg-blue-800' },
+    { name: 'Deep Purple', hex: '#581C87', bg: 'bg-purple-900' },
+    { name: 'Emerald Green', hex: '#047857', bg: 'bg-emerald-700' },
+    { name: 'Crimson Red', hex: '#991B1B', bg: 'bg-red-800' },
+    { name: 'Golden Amber', hex: '#B45309', bg: 'bg-amber-700' },
+    { name: 'Teal Cyan', hex: '#0F766E', bg: 'bg-teal-700' },
+    { name: 'Obsidian Black', hex: '#18181B', bg: 'bg-zinc-900' },
+  ];
+
+  // Preset Logos
+  const PRESET_LOGOS = [
+    {
+      id: 'crest',
+      name: 'Shield Crest',
+      url: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=120&q=80'
+    },
+    {
+      id: 'academic',
+      name: 'Academic Star',
+      url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=120&q=80'
+    },
+    {
+      id: 'heritage',
+      name: 'Heritage Pillar',
+      url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=120&q=80'
+    }
+  ];
+
+  // Convert logo URL to base64 for PDF generation
+  React.useEffect(() => {
+    if (!schoolLogo) {
+      setLogoBase64('');
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || 120;
+        canvas.height = img.naturalHeight || 120;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          setLogoBase64(canvas.toDataURL('image/png', 0.9));
+        }
+      } catch (e) {
+        console.warn('Logo base64 conversion error:', e);
+      }
+    };
+    img.onerror = () => setLogoBase64('');
+    img.src = schoolLogo;
+  }, [schoolLogo]);
+
+  const handleLogoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        if (uploadEvent.target?.result) {
+          setSchoolLogo(uploadEvent.target!.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleClearForm = () => {
+    setFormData({
+      id: `NEW-${Date.now().toString().slice(-4)}`,
+      name: '',
+      email: '',
+      role: formData.role || 'student',
+      studentId: formData.role === 'teacher' ? `FAC-2026-${Math.floor(100 + Math.random() * 900)}` : `STU-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      className: '',
+      rollNo: '',
+      subject: '',
+      phone: '',
+      parentName: '',
+      dateOfBirth: '',
+      avatar: ''
+    });
+  };
+
+  const handleFillSampleData = () => {
+    setFormData({
+      id: `CUSTOM-${Date.now().toString().slice(-4)}`,
+      name: 'Alexandria Rivers',
+      email: 'alex.rivers@bnia.edu.in',
+      role: formData.role || 'student',
+      studentId: formData.role === 'teacher' ? 'FAC-2026-802' : 'STU-2026-1084',
+      className: formData.role === 'teacher' ? 'Senior Secondary' : 'Class 10-A',
+      rollNo: '04',
+      subject: 'Mathematics & Science',
+      phone: '+91 63040 45279',
+      parentName: 'David Rivers',
+      dateOfBirth: '2010-05-14',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
+    });
+  };
 
   const handleRoleChange = (role: 'student' | 'teacher') => {
     setFormData(prev => ({
@@ -156,7 +273,9 @@ export const IDCardStudioView: React.FC = () => {
         const doc = generateIdCardPDF(person, {
           schoolName: customSchoolName,
           principalName: customPrincipal,
-          phone: person.phone || '+91 63040 45279'
+          phone: person.phone || '+91 63040 45279',
+          primaryColor,
+          schoolLogoDataUrl: logoBase64
         });
         const roleLabel = person.role === 'teacher' ? 'Faculty' : 'Student';
         doc.save(`${person.name.replace(/\s+/g, '_')}_${roleLabel}_ID_Card.pdf`);
@@ -233,9 +352,26 @@ export const IDCardStudioView: React.FC = () => {
                   <UserPlus className="w-4 h-4 text-blue-600" />
                   <span>ID Card Configuration</span>
                 </h3>
-                <span className="text-[10px] bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-extrabold px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">
-                  Live Builder
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleClearForm}
+                    className="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    title="Clear all fields to enter new details"
+                  >
+                    <Eraser className="w-3.5 h-3.5" />
+                    <span>Clear Form</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleFillSampleData}
+                    className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    title="Restore sample demo data"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Sample</span>
+                  </button>
+                </div>
               </div>
 
               {/* Role Toggle */}
@@ -404,11 +540,38 @@ export const IDCardStudioView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Custom Institutional Header */}
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                  <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">
-                    Institutional Branding
-                  </span>
+                {/* Form Quick Actions Bar */}
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleClearForm}
+                    className="flex-1 py-2 px-3 bg-rose-50 dark:bg-rose-950/80 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  >
+                    <Eraser className="w-3.5 h-3.5" />
+                    <span>Clear All Fields</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleFillSampleData}
+                    className="py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Fill Sample</span>
+                  </button>
+                </div>
+
+                {/* Custom Institutional Branding Section */}
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                      <span>Institutional Branding & Design</span>
+                    </span>
+                    <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">
+                      Auto-Applied
+                    </span>
+                  </div>
+
                   <div>
                     <label className="block text-slate-700 dark:text-slate-300 font-semibold text-[11px] mb-1">
                       School Name
@@ -417,8 +580,117 @@ export const IDCardStudioView: React.FC = () => {
                       type="text"
                       value={customSchoolName}
                       onChange={(e) => setCustomSchoolName(e.target.value)}
-                      className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 outline-none"
+                      className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 outline-none text-xs font-semibold"
                     />
+                  </div>
+
+                  {/* Primary Brand Color Selection */}
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold text-[11px] mb-1.5">
+                      Primary Brand Color
+                    </label>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-1.5 flex-1 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <input
+                          type="color"
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          className="w-7 h-7 rounded-lg border-0 cursor-pointer bg-transparent p-0"
+                          title="Choose custom brand color"
+                        />
+                        <input
+                          type="text"
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          className="w-20 px-2 py-0.5 text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none"
+                          placeholder="#0F172A"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Color Swatches */}
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {COLOR_PALETTE.map((c) => {
+                        const isSelected = primaryColor.toLowerCase() === c.hex.toLowerCase();
+                        return (
+                          <button
+                            key={c.hex}
+                            type="button"
+                            onClick={() => setPrimaryColor(c.hex)}
+                            className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold flex items-center justify-between transition cursor-pointer ${
+                              isSelected
+                                ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300'
+                                : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:border-slate-300'
+                            }`}
+                          >
+                            <span className="truncate">{c.name}</span>
+                            <span className={`w-2.5 h-2.5 rounded-full ${c.bg} shrink-0 ml-1 border border-white/20`} />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* School Logo Customization */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-slate-700 dark:text-slate-300 font-semibold text-[11px]">
+                        School Crest / Logo
+                      </label>
+                      {schoolLogo && (
+                        <button
+                          type="button"
+                          onClick={() => setSchoolLogo('')}
+                          className="text-[10px] text-rose-500 hover:underline font-bold"
+                        >
+                          Reset Logo
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          value={schoolLogo}
+                          onChange={(e) => setSchoolLogo(e.target.value)}
+                          className="flex-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 text-[11px] outline-none"
+                          placeholder="Paste Logo Image URL..."
+                        />
+                        <label className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-xl text-xs font-bold hover:bg-indigo-100 transition cursor-pointer shrink-0 flex items-center gap-1">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Upload</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoFileUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+
+                      {/* Sample Preset Logos */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-slate-400">Presets:</span>
+                        <div className="flex gap-1.5 overflow-x-auto py-1">
+                          {PRESET_LOGOS.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => setSchoolLogo(p.url)}
+                              className={`px-2 py-1 rounded-lg border text-[10px] font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${
+                                schoolLogo === p.url
+                                  ? 'bg-blue-600 text-white border-blue-600'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                              }`}
+                            >
+                              <img src={p.url} alt={p.name} className="w-3.5 h-3.5 rounded object-cover" />
+                              <span>{p.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -511,15 +783,69 @@ export const IDCardStudioView: React.FC = () => {
               </span>
             </div>
 
+            {/* Side Preview Toggle Control Bar */}
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700/80">
+              <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 pl-1 flex items-center gap-1.5">
+                <Eye className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Card View Mode:</span>
+              </span>
+
+              <div className="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setPreviewSide('both')}
+                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                    previewSide === 'both'
+                      ? 'bg-blue-600 text-white shadow-2xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <LayoutGrid className="w-3 h-3" />
+                  <span>Both Sides</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPreviewSide('front')}
+                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                    previewSide === 'front'
+                      ? 'bg-blue-600 text-white shadow-2xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <UserCheck className="w-3 h-3" />
+                  <span>Front Side</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPreviewSide('back')}
+                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                    previewSide === 'back'
+                      ? 'bg-blue-600 text-white shadow-2xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Back Side</span>
+                </button>
+              </div>
+            </div>
+
             {/* Render ID Card Template */}
             <IDCardTemplate
               person={currentPreviewPerson}
               schoolSettings={{
                 name: customSchoolName,
-                principalName: customPrincipal
+                principalName: customPrincipal,
+                logo: schoolLogo,
+                primaryColor: primaryColor
               }}
+              schoolLogo={schoolLogo}
+              primaryColor={primaryColor}
               showControls={true}
               showBackSide={true}
+              viewSide={previewSide}
             />
           </div>
         </div>

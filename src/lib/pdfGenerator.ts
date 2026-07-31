@@ -786,6 +786,23 @@ export interface IdCardOptions {
   phone?: string;
   qrDataUrl?: string;
   avatarDataUrl?: string;
+  schoolLogoDataUrl?: string;
+  primaryColor?: string;
+}
+
+function hexToRgb(hex?: string): { r: number; g: number; b: number } {
+  if (!hex) return { r: 15, g: 23, b: 42 }; // slate-900 default
+  let cleaned = hex.replace('#', '');
+  if (cleaned.length === 3) {
+    cleaned = cleaned.split('').map(c => c + c).join('');
+  }
+  const num = parseInt(cleaned, 16);
+  if (isNaN(num)) return { r: 15, g: 23, b: 42 };
+  return {
+    r: (num >> 16) & 255,
+    g: (num >> 8) & 255,
+    b: num & 255
+  };
 }
 
 /**
@@ -798,6 +815,8 @@ export const generateIdCardPDF = (user: User, options?: IdCardOptions): jsPDF =>
   const schoolAddress = options?.schoolAddress || 'Macherla, Palnadu, AP - 522426';
   const principalName = options?.principalName || 'Dr. Balu Naik, B. Tech';
   const phone = options?.phone || '+91 63040 45279';
+
+  const brandRgb = hexToRgb(options?.primaryColor);
 
   const isTeacher = user.role === 'teacher';
   const titleText = isTeacher ? 'FACULTY & STAFF IDENTIFICATION PASS' : 'OFFICIAL STUDENT IDENTIFICATION PASS';
@@ -836,19 +855,33 @@ export const generateIdCardPDF = (user: User, options?: IdCardOptions): jsPDF =>
   doc.setDrawColor(226, 232, 240); // slate-200
   doc.roundedRect(frontX, startY, cardW, cardH, 2, 2, 'FD');
 
-  // Card Header Bar (Navy Background)
-  doc.setFillColor(15, 23, 42); // slate-900
+  // Card Header Bar (Custom Primary Brand Color or Navy)
+  doc.setFillColor(brandRgb.r, brandRgb.g, brandRgb.b);
   doc.roundedRect(frontX, startY, cardW, 12, 2, 2, 'F');
   // Fill square corners at bottom of header
   doc.rect(frontX, startY + 8, cardW, 4, 'F');
 
-  // Emblem "BN"
-  doc.setFillColor(37, 99, 235); // blue-600
-  doc.roundedRect(frontX + 2.5, startY + 2, 8, 8, 1.5, 1.5, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.text('BN', frontX + 6.5, startY + 7.5, { align: 'center' });
+  // School Emblem / Logo
+  if (options?.schoolLogoDataUrl) {
+    try {
+      doc.addImage(options.schoolLogoDataUrl, 'PNG', frontX + 2.5, startY + 2, 8, 8);
+    } catch (e) {
+      console.warn('Could not add school logo to ID PDF:', e);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(frontX + 2.5, startY + 2, 8, 8, 1.5, 1.5, 'F');
+      doc.setTextColor(brandRgb.r, brandRgb.g, brandRgb.b);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.text('BN', frontX + 6.5, startY + 7.5, { align: 'center' });
+    }
+  } else {
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(frontX + 2.5, startY + 2, 8, 8, 1.5, 1.5, 'F');
+    doc.setTextColor(brandRgb.r, brandRgb.g, brandRgb.b);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.text('BN', frontX + 6.5, startY + 7.5, { align: 'center' });
+  }
 
   // School Name
   doc.setFontSize(7);

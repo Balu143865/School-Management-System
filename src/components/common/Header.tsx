@@ -20,7 +20,9 @@ import {
   MoreVertical,
   SlidersHorizontal,
   ShieldCheck,
-  Globe
+  Globe,
+  QrCode,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -198,6 +200,32 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             <div className="w-px h-6 bg-slate-200 dark:bg-slate-800"></div>
+
+            <button
+              onClick={() => setActiveTab('id-cards')}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                activeTab === 'id-cards'
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                  : 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 border-blue-200 dark:border-blue-800'
+              }`}
+              title="Official ID Card Studio & Generator"
+            >
+              <QrCode className="w-3.5 h-3.5" />
+              <span>ID Cards</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('readme')}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                activeTab === 'readme'
+                  ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
+                  : 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:bg-purple-100 border-purple-200 dark:border-purple-800'
+              }`}
+              title="GitHub README.md Documentation & Setup Guide"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>README.md</span>
+            </button>
 
             <button
               onClick={() => setIsScannerOpen(true)}
