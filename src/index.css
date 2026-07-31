@@ -125,3 +125,47 @@ html.dark .bg-indigo-100 {
   color: #818cf8 !important;
 }
 
+/* Premium Animations */
+@keyframes shimmerSweep {
+  0% { transform: translateX(-150%) rotate(20deg); }
+  100% { transform: translateX(250%) rotate(20deg); }
+}
+
+@keyframes floatSoft {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.04); }
+}
+
+.animate-shimmer-sweep {
+  animation: shimmerSweep 5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-float-soft {
+  animation: floatSoft 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3.5s ease-in-out infinite;
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-tab-fade-in {
+  animation: tabFadeIn 0.3s ease-out forwards;
+}
+
+

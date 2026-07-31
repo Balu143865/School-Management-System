@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import schoolBannerImg from '../../assets/images/school-banner.png';
 import {
   GraduationCap,
   UserCheck,
@@ -11,7 +12,8 @@ import {
   CheckCircle2,
   Clock,
   ShieldAlert,
-  Bell
+  Bell,
+  Building2
 } from 'lucide-react';
 import { StatCard } from '../common/StatCard';
 import { api } from '../../lib/api';
@@ -55,6 +57,51 @@ export const AdminDashboard: React.FC<Props> = ({ setActiveTab, onOpenRegisterSc
 
   return (
     <div className="space-y-6">
+      {/* Animated Official Campus Banner Header Card */}
+      <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900 text-white shadow-xl group">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <img
+            src={schoolBannerImg}
+            alt="BN Academy Campus Banner"
+            className="w-full h-full object-cover object-center group-hover:scale-105 transition duration-1000 filter saturate-[1.15] opacity-35"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-slate-950/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition duration-1000 pointer-events-none animate-shimmer-sweep" />
+        </div>
+
+        <div className="relative z-10 p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-2 max-w-xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-extrabold bg-blue-500/20 border border-blue-400/30 text-blue-300 shadow-sm">
+              <Building2 className="w-3.5 h-3.5 text-blue-400" />
+              <span>BN International Academy • Enterprise Portal</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              Institutional Admin Workspace
+            </h1>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Real-time campus analytics, automated ID card issuance, faculty attendance matrix, and smart student management system active.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setActiveTab('idcards')}
+              className="px-3.5 py-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-xs font-black rounded-xl flex items-center gap-1.5 transition shadow-lg shadow-emerald-500/20 active:scale-95 cursor-pointer"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>ID Card Studio</span>
+            </button>
+            <button
+              onClick={onOpenRegisterSchool}
+              className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold rounded-xl flex items-center gap-1.5 transition backdrop-blur-md cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Register New School</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* 4 Metric Cards in High Density Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard

@@ -162,7 +162,7 @@ function MainAppContent() {
   };
 
   return (
-    <div className="fixed inset-0 h-full w-full bg-[#F1F5F9] dark:bg-slate-950 flex flex-col font-sans text-slate-800 dark:text-slate-100 selection:bg-blue-600 selection:text-white overflow-hidden transition-colors">
+    <div className="fixed inset-0 h-full w-full bg-[#F1F5F9] dark:bg-[#090D16] flex flex-col font-sans text-slate-800 dark:text-slate-100 selection:bg-blue-600 selection:text-white overflow-hidden transition-colors">
       <OfflineBanner />
       <Header
         activeTab={activeTab}
@@ -191,8 +191,10 @@ function MainAppContent() {
           onGoToLandingPage={() => setIsLandingPage(true)}
         />
 
-        <main className="flex-1 p-3.5 sm:p-6 pb-16 lg:pb-6 overflow-y-auto overflow-x-hidden w-full max-w-full min-w-0 space-y-6">
-          {renderContent()}
+        <main className="flex-1 p-3.5 sm:p-6 pb-16 lg:pb-6 overflow-y-auto overflow-x-hidden w-full max-w-full min-w-0">
+          <div key={activeTab} className="animate-tab-fade-in space-y-6">
+            {renderContent()}
+          </div>
         </main>
       </div>
 

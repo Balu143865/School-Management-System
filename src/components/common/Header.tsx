@@ -96,7 +96,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0 z-30 sticky top-0 transition-colors">
+    <header className="bg-white dark:bg-[#0F172A] border-b border-slate-200 dark:border-slate-800/90 shadow-xs dark:shadow-lg dark:shadow-black/30 shrink-0 z-30 sticky top-0 transition-colors">
       <div className="h-14 px-2.5 sm:px-6 flex items-center justify-between">
         {/* Left Section: Mobile Menu Toggle & Logo */}
         <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import heroBannerImg from '../../assets/images/school_hero_banner_1785341252398.jpg';
+import schoolBannerImg from '../../assets/images/school-banner.png';
 import principalBaluNaikImg from '../../assets/images/principal_balu_naik.jpg';
 import { principalImageBase64 } from '../../assets/images/principalImageData';
 import { useAuth } from '../../context/AuthContext';
@@ -46,7 +47,9 @@ import {
   X,
   Linkedin,
   Github,
-  Instagram
+  Instagram,
+  Maximize2,
+  Zap
 } from 'lucide-react';
 
 interface SchoolLandingPageProps {
@@ -59,6 +62,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [testimonialFilter, setTestimonialFilter] = useState<'all' | 'students' | 'parents' | 'alumni'>('all');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+  const [bannerCategoryFilter, setBannerCategoryFilter] = useState<'all' | 'academic' | 'tech' | 'sports'>('all');
+  const [activeHotspot, setActiveHotspot] = useState<string | null>('main-block');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme !== null) {
@@ -135,10 +141,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
 
   return (
     <div id="home" className={`h-screen w-full font-sans selection:bg-emerald-500 selection:text-slate-950 overflow-y-auto overflow-x-hidden scroll-smooth transition-colors duration-300 ${
-      isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+      isDarkMode ? 'bg-[#090D16] text-slate-100' : 'bg-slate-50 text-slate-900'
     }`}>
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white text-xs py-2 px-4">
+      <div className="bg-gradient-to-r from-emerald-600 via-teal-700 to-indigo-900 text-white text-xs py-2 px-4 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
           <div className="flex items-center gap-2 font-medium">
             <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase">Admissions Open</span>
@@ -157,8 +163,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
       </div>
 
       {/* Main Navbar */}
-      <header className={`sticky top-0 z-50 backdrop-blur-md transition-colors duration-300 border-b ${
-        isDarkMode ? 'bg-slate-900/90 border-slate-800 text-white' : 'bg-white/90 border-slate-200 text-slate-900 shadow-sm'
+      <header className={`sticky top-0 z-50 backdrop-blur-xl transition-colors duration-300 border-b ${
+        isDarkMode
+          ? 'bg-[#0F172A]/95 border-slate-800/90 border-b-emerald-500/30 text-white shadow-xl shadow-slate-950/50'
+          : 'bg-white/95 border-slate-200 text-slate-900 shadow-sm'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
           {/* Brand Logo */}
@@ -435,36 +443,32 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
       {/* Hero Section */}
       <section className={`relative pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden transition-colors duration-300 ${
         isDarkMode
-          ? 'bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white'
-          : 'bg-gradient-to-b from-emerald-50/90 via-teal-50/60 to-emerald-100/50 text-slate-900'
+          ? 'bg-gradient-to-b from-[#0F172A] via-[#0B0F17] to-[#090D16] text-white'
+          : 'bg-gradient-to-b from-slate-50 via-emerald-50/20 to-slate-100/80 text-slate-900'
       }`}>
         {/* Generated Hero Background Image with Overlay */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <img
-            src={heroBannerImg}
-            alt="School Campus Background"
+            src={schoolBannerImg}
+            alt="School Campus Banner Background"
             onError={(e) => {
               const target = e.currentTarget;
-              if (!target.src.includes('school_hero_banner.jpg')) {
-                target.src = '/school_hero_banner.jpg';
-              } else {
-                target.onerror = null;
-                target.src = "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80";
-              }
+              target.onerror = null;
+              target.src = heroBannerImg;
             }}
             className={`w-full h-full object-cover object-center scale-105 filter saturate-[1.2] ${
-              isDarkMode ? 'opacity-20' : 'opacity-15'
+              isDarkMode ? 'opacity-25' : 'opacity-15'
             }`}
           />
           <div className={`absolute inset-0 ${
             isDarkMode
               ? 'bg-gradient-to-r from-slate-950 via-slate-900/95 to-slate-950/80'
-              : 'bg-gradient-to-r from-emerald-50/95 via-emerald-50/80 to-teal-50/70'
+              : 'bg-gradient-to-r from-slate-50/95 via-slate-50/90 to-emerald-50/40'
           }`} />
           <div className={`absolute inset-0 ${
             isDarkMode
               ? 'bg-gradient-to-b from-slate-900/60 via-transparent to-slate-950'
-              : 'bg-gradient-to-b from-emerald-100/30 via-transparent to-emerald-100/60'
+              : 'bg-gradient-to-b from-slate-50/30 via-transparent to-slate-100/80'
           }`} />
         </div>
 
@@ -582,19 +586,23 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   </span>
                 </div>
 
-                {/* Hero Feature Image with Gradient Fallback */}
-                <div className="relative rounded-2xl overflow-hidden border border-slate-700/80 bg-gradient-to-br from-slate-800 via-teal-950 to-slate-900 h-44 sm:h-48 group">
+                {/* Hero Feature Image with Gradient Fallback & Lightbox Trigger */}
+                <div
+                  onClick={() => setIsBannerModalOpen(true)}
+                  className="relative rounded-2xl overflow-hidden border border-slate-700/80 bg-gradient-to-br from-slate-800 via-teal-950 to-slate-900 h-44 sm:h-48 group cursor-pointer"
+                  title="Click to view 4K Fullscreen Banner"
+                >
                   <img
-                    src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1000&q=80"
-                    alt="Campus Library & Students"
+                    src={schoolBannerImg}
+                    alt="BN Academy Official School Banner"
                     onError={(e) => {
                       const target = e.currentTarget;
                       target.onerror = null;
-                      target.src = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1000&q=80";
+                      target.src = heroBannerImg;
                     }}
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-700 opacity-85"
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-700 filter saturate-[1.1]"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent pointer-events-none" />
 
                   {/* Badge over image */}
                   <div className="absolute top-2.5 left-2.5 bg-slate-900/90 backdrop-blur-md border border-slate-700 px-2.5 py-1 rounded-xl flex items-center gap-1.5 text-[11px] font-bold text-white shadow-md">
@@ -602,9 +610,17 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                     <span>A+ Grade Campus</span>
                   </div>
 
+                  <div className="absolute top-2.5 right-2.5 bg-blue-600/90 hover:bg-blue-500 backdrop-blur-md border border-blue-400/40 px-2 py-1 rounded-xl flex items-center gap-1 text-[10px] font-extrabold text-white shadow-md transition">
+                    <Maximize2 className="w-3 h-3" />
+                    <span>View 4K</span>
+                  </div>
+
                   <div className="absolute bottom-3 left-3 right-3 text-left">
-                    <div className="text-xs font-bold text-white">Modern Digital Campus & AI Learning</div>
-                    <div className="text-[10px] text-slate-300 mt-0.5">Real-time attendance, digital student IDs & parent connect.</div>
+                    <div className="text-xs font-extrabold text-white flex items-center gap-1.5">
+                      <span>Official Campus Architecture</span>
+                      <Sparkles className="w-3 h-3 text-amber-300" />
+                    </div>
+                    <div className="text-[10px] text-slate-300 mt-0.5">Click to view high-resolution institutional banner.</div>
                   </div>
                 </div>
 
@@ -973,18 +989,248 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
         </div>
       </section>
 
+      {/* 🏛️ Premium Interactive Campus Showcase & School Banner Section */}
+      <section id="campus-banner" className={`py-10 md:py-12 transition-colors duration-300 relative overflow-hidden ${
+        isDarkMode
+          ? 'bg-[#0F172A]/80 text-white border-t border-b border-slate-800/80'
+          : 'bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-950 text-white'
+      }`}>
+        {/* Background glow effects */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-600/15 rounded-full blur-[140px] pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 space-y-6">
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-extrabold bg-blue-500/15 border border-blue-400/30 text-blue-300 shadow-md">
+              <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
+              <span>Official Institutional Campus Architecture</span>
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight text-white">
+              State-of-the-Art <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-teal-300 to-emerald-400">BN Academy Campus</span>
+            </h2>
+            <p className="text-xs sm:text-xs text-slate-300 leading-relaxed max-w-2xl mx-auto">
+              Explore our world-class infrastructure featuring AI-integrated STEM labs, Olympic sports arenas, digital libraries, and smart eco-friendly academic blocks.
+            </p>
+          </div>
+
+          {/* Banner Controls Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white/5 backdrop-blur-xl p-2.5 sm:p-3 rounded-2xl border border-white/10 shadow-xl">
+            {/* Filter Pills - Horizontally scrollable on mobile */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none w-full sm:w-auto shrink-0">
+              <span className="text-xs font-bold text-slate-300 px-1.5 flex items-center gap-1 shrink-0">
+                <Compass className="w-3.5 h-3.5 text-blue-400" /> <span className="hidden xs:inline">Hotspot</span> Guide:
+              </span>
+              {[
+                { id: 'all', label: 'All Hotspots', icon: Globe },
+                { id: 'academic', label: 'Academic Block', icon: Building2 },
+                { id: 'tech', label: 'STEM & AI Wing', icon: Cpu },
+                { id: 'sports', label: 'Sports Complex', icon: Dumbbell }
+              ].map((btn) => {
+                const IconComp = btn.icon;
+                const isActive = bannerCategoryFilter === btn.id;
+                return (
+                  <button
+                    key={btn.id}
+                    onClick={() => setBannerCategoryFilter(btn.id as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-teal-500 text-white shadow-md shadow-blue-500/25'
+                        : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
+                    }`}
+                  >
+                    <IconComp className="w-3.5 h-3.5" />
+                    <span>{btn.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Lightbox Trigger Button */}
+            <button
+              onClick={() => setIsBannerModalOpen(true)}
+              className="w-full sm:w-auto px-3.5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 active:scale-95 cursor-pointer shrink-0"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span>Inspect 4K Fullscreen Banner</span>
+            </button>
+          </div>
+
+          {/* Animated Main Banner Container */}
+          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-blue-500/30 bg-slate-900 shadow-2xl group">
+            {/* Ambient Shimmer Light Effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition duration-1000 pointer-events-none animate-shimmer-sweep" />
+
+            {/* High-Res Banner Image */}
+            <div className="relative w-full aspect-[16/10] sm:aspect-[20/8] md:aspect-[28/8] overflow-hidden bg-slate-950">
+              <img
+                src={schoolBannerImg}
+                alt="BN International Academy Official School Banner"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition duration-700 filter saturate-[1.15] contrast-[1.05]"
+              />
+
+              {/* Gradient Vignette Overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/40 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 via-transparent to-slate-950/60 pointer-events-none" />
+
+              {/* Interactive Hotspot Pins */}
+              {(bannerCategoryFilter === 'all' || bannerCategoryFilter === 'academic') && (
+                <div className="absolute top-[35%] left-[25%] group/pin cursor-pointer">
+                  <div
+                    onClick={() => setActiveHotspot('main-block')}
+                    className="relative flex items-center justify-center"
+                  >
+                    <span className="absolute w-8 h-8 rounded-full bg-blue-500/50 animate-ping" />
+                    <div className={`w-7 h-7 rounded-full bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center border-2 border-white shadow-xl transition transform group-hover/pin:scale-125 ${activeHotspot === 'main-block' ? 'ring-4 ring-blue-400' : ''}`}>
+                      <Building2 className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {(bannerCategoryFilter === 'all' || bannerCategoryFilter === 'tech') && (
+                <div className="absolute top-[28%] left-[62%] group/pin cursor-pointer">
+                  <div
+                    onClick={() => setActiveHotspot('stem-lab')}
+                    className="relative flex items-center justify-center"
+                  >
+                    <span className="absolute w-8 h-8 rounded-full bg-emerald-500/50 animate-ping" />
+                    <div className={`w-7 h-7 rounded-full bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center border-2 border-white shadow-xl transition transform group-hover/pin:scale-125 ${activeHotspot === 'stem-lab' ? 'ring-4 ring-emerald-400' : ''}`}>
+                      <Cpu className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {(bannerCategoryFilter === 'all' || bannerCategoryFilter === 'sports') && (
+                <div className="absolute top-[52%] left-[80%] group/pin cursor-pointer">
+                  <div
+                    onClick={() => setActiveHotspot('sports-arena')}
+                    className="relative flex items-center justify-center"
+                  >
+                    <span className="absolute w-8 h-8 rounded-full bg-amber-500/50 animate-ping" />
+                    <div className={`w-7 h-7 rounded-full bg-amber-500 text-white font-extrabold text-xs flex items-center justify-center border-2 border-white shadow-xl transition transform group-hover/pin:scale-125 ${activeHotspot === 'sports-arena' ? 'ring-4 ring-amber-400' : ''}`}>
+                      <Dumbbell className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Watermark Banner Badge */}
+              <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-slate-900/85 backdrop-blur-md border border-white/20 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl sm:rounded-2xl flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-white shadow-xl z-10">
+                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
+                <span className="truncate max-w-[200px] sm:max-w-none">BN International Academy Official Banner</span>
+              </div>
+
+              {/* Active Hotspot Info Card Overlay */}
+              {activeHotspot && (
+                <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 sm:left-auto sm:right-4 sm:max-w-md bg-slate-900/95 backdrop-blur-xl border border-blue-500/40 p-3 sm:p-4 rounded-xl sm:rounded-2xl text-white shadow-2xl space-y-1.5 sm:space-y-2 animate-in fade-in slide-in-from-bottom-3 duration-300 z-20">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-blue-400">
+                        {activeHotspot === 'main-block' && 'Central Academic Block'}
+                        {activeHotspot === 'stem-lab' && 'AI & STEM Innovation Center'}
+                        {activeHotspot === 'sports-arena' && 'International Sports Complex'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setActiveHotspot(null)}
+                      className="text-slate-400 hover:text-white text-xs p-1 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {activeHotspot === 'main-block' && 'Home to 60+ smart classrooms equipped with 4K touchboards, administrative suites, and central library.'}
+                    {activeHotspot === 'stem-lab' && 'Includes high-speed computing clusters, 3D printing, robotics testing arena, and physics research labs.'}
+                    {activeHotspot === 'sports-arena' && 'Features an Olympic-size swimming pool, synthetic athletic track, football turf, and indoor badminton courts.'}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Stats Footer Strip */}
+            <div className="bg-slate-900/95 border-t border-slate-800 p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+              <div className="space-y-0.5">
+                <div className="text-base sm:text-lg font-black text-white">25 Acres</div>
+                <div className="text-[11px] text-slate-400">Eco-Friendly Campus</div>
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-base sm:text-lg font-black text-emerald-400">100% Solar</div>
+                <div className="text-[11px] text-slate-400">Clean Energy Powered</div>
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-base sm:text-lg font-black text-blue-400">60+ Smart</div>
+                <div className="text-[11px] text-slate-400">Interactive Classrooms</div>
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-base sm:text-lg font-black text-purple-400">24/7 AI</div>
+                <div className="text-[11px] text-slate-400">Smart Campus Security</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4K Lightbox Fullscreen Modal */}
+      {isBannerModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-between p-4 sm:p-8 animate-in fade-in duration-300">
+          {/* Modal Header */}
+          <div className="w-full max-w-7xl flex items-center justify-between text-white border-b border-slate-800 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold">
+                <GraduationCap className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base sm:text-lg">BN International Academy Campus Banner (4K HD)</h3>
+                <p className="text-xs text-slate-400">Official High-Resolution Institutional Architecture View</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsBannerModalOpen(false)}
+              className="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border border-slate-700 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Modal Main Image */}
+          <div className="relative my-auto w-full max-w-6xl overflow-hidden rounded-3xl border-2 border-blue-500/40 shadow-2xl bg-black">
+            <img
+              src={schoolBannerImg}
+              alt="4K HD School Banner"
+              className="w-full h-auto max-h-[75vh] object-contain mx-auto"
+            />
+          </div>
+
+          {/* Modal Footer */}
+          <div className="w-full max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 border-t border-slate-800 pt-4">
+            <div className="flex items-center gap-2 text-emerald-400 font-semibold">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Full High-Resolution Institutional Banner</span>
+            </div>
+            <button
+              onClick={() => setIsBannerModalOpen(false)}
+              className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition cursor-pointer"
+            >
+              Close Lightbox
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Academic Curricula Section */}
       <section id="academics" className={`py-20 transition-colors duration-300 border-t ${
         isDarkMode
-          ? 'bg-slate-950 border-slate-800 text-white'
-          : 'bg-purple-50/80 border-purple-200/80 text-slate-900'
+          ? 'bg-[#090D16] border-slate-800/80 text-white'
+          : 'bg-slate-50 border-slate-200 text-slate-900'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <span className={`text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full border ${
               isDarkMode
                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                : 'bg-purple-500/15 text-purple-800 border-purple-500/30'
+                : 'bg-emerald-500/15 text-emerald-800 border-emerald-500/30'
             }`}>
               Academic Wings
             </span>
@@ -995,10 +1241,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            <div className={`p-6 rounded-3xl border space-y-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-lg hover:shadow-2xl hover:shadow-emerald-500/20 group ${
+            <div className={`p-6 rounded-3xl border space-y-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 group ${
               isDarkMode
                 ? 'bg-slate-900 border-slate-800 hover:border-emerald-500/60'
-                : 'bg-white border-purple-200/90 hover:border-emerald-500/60'
+                : 'bg-white border-slate-200 hover:border-emerald-500/60'
             }`}>
               <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl w-fit group-hover:scale-110 transition">
                 <GraduationCap className="w-6 h-6" />
@@ -1012,10 +1258,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               </div>
             </div>
 
-            <div className={`p-6 rounded-3xl border space-y-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-lg hover:shadow-2xl hover:shadow-blue-500/20 group ${
+            <div className={`p-6 rounded-3xl border space-y-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-sm hover:shadow-xl hover:shadow-blue-500/10 group ${
               isDarkMode
                 ? 'bg-slate-900 border-slate-800 hover:border-blue-500/60'
-                : 'bg-white border-purple-200/90 hover:border-blue-500/60'
+                : 'bg-white border-slate-200 hover:border-blue-500/60'
             }`}>
               <div className="p-3 bg-blue-500/10 text-blue-500 rounded-2xl w-fit group-hover:scale-110 transition">
                 <Laptop className="w-6 h-6" />
@@ -1029,10 +1275,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               </div>
             </div>
 
-            <div className={`p-6 rounded-3xl border space-y-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 group ${
+            <div className={`p-6 rounded-3xl border space-y-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-sm hover:shadow-xl hover:shadow-purple-500/10 group ${
               isDarkMode
                 ? 'bg-slate-900 border-slate-800 hover:border-purple-500/60'
-                : 'bg-white border-purple-200/90 hover:border-purple-500/60'
+                : 'bg-white border-slate-200 hover:border-purple-500/60'
             }`}>
               <div className="p-3 bg-purple-500/10 text-purple-500 rounded-2xl w-fit group-hover:scale-110 transition">
                 <Trophy className="w-6 h-6" />
@@ -1052,15 +1298,15 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
       {/* Campus Facilities & Infrastructure Section */}
       <section id="facilities" className={`py-20 transition-colors duration-300 border-t ${
         isDarkMode
-          ? 'bg-slate-900 border-slate-800 text-white'
-          : 'bg-teal-50/80 border-teal-200/80 text-slate-900'
+          ? 'bg-[#0F172A]/70 border-slate-800/80 text-white'
+          : 'bg-white border-slate-200 text-slate-900'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <span className={`text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full border ${
               isDarkMode
                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                : 'bg-teal-500/15 text-teal-800 border-teal-500/30'
+                : 'bg-emerald-500/15 text-emerald-800 border-emerald-500/30'
             }`}>
               Campus Facilities
             </span>
@@ -1071,10 +1317,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className={`p-6 rounded-3xl border space-y-3.5 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-lg hover:shadow-2xl hover:shadow-emerald-500/20 group ${
+            <div className={`p-6 rounded-3xl border space-y-3.5 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 group ${
               isDarkMode
                 ? 'bg-slate-800/60 border-slate-700/80 hover:border-emerald-500/60'
-                : 'bg-white border-teal-200/90 hover:border-emerald-500/60'
+                : 'bg-slate-50 border-slate-200/80 hover:border-emerald-500/60'
             }`}>
               <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl w-fit group-hover:scale-110 transition">
                 <Microscope className="w-6 h-6" />
@@ -1085,10 +1331,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               </p>
             </div>
 
-            <div className={`p-6 rounded-3xl border space-y-3.5 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-lg hover:shadow-2xl hover:shadow-blue-500/20 group ${
+            <div className={`p-6 rounded-3xl border space-y-3.5 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-sm hover:shadow-xl hover:shadow-blue-500/10 group ${
               isDarkMode
                 ? 'bg-slate-800/60 border-slate-700/80 hover:border-blue-500/60'
-                : 'bg-white border-teal-200/90 hover:border-blue-500/60'
+                : 'bg-slate-50 border-slate-200/80 hover:border-blue-500/60'
             }`}>
               <div className="p-3 bg-blue-500/10 text-blue-500 rounded-2xl w-fit group-hover:scale-110 transition">
                 <Library className="w-6 h-6" />
@@ -1099,10 +1345,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               </p>
             </div>
 
-            <div className={`p-6 rounded-3xl border space-y-3.5 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-lg hover:shadow-2xl hover:shadow-amber-500/20 group ${
+            <div className={`p-6 rounded-3xl border space-y-3.5 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-sm hover:shadow-xl hover:shadow-amber-500/10 group ${
               isDarkMode
                 ? 'bg-slate-800/60 border-slate-700/80 hover:border-amber-500/60'
-                : 'bg-white border-teal-200/90 hover:border-amber-500/60'
+                : 'bg-slate-50 border-slate-200/80 hover:border-amber-500/60'
             }`}>
               <div className="p-3 bg-amber-500/10 text-amber-500 rounded-2xl w-fit group-hover:scale-110 transition">
                 <Dumbbell className="w-6 h-6" />
@@ -1113,10 +1359,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               </p>
             </div>
 
-            <div className={`p-6 rounded-3xl border space-y-3.5 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 group ${
+            <div className={`p-6 rounded-3xl border space-y-3.5 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-sm hover:shadow-xl hover:shadow-purple-500/10 group ${
               isDarkMode
                 ? 'bg-slate-800/60 border-slate-700/80 hover:border-purple-500/60'
-                : 'bg-white border-teal-200/90 hover:border-purple-500/60'
+                : 'bg-slate-50 border-slate-200/80 hover:border-purple-500/60'
             }`}>
               <div className="p-3 bg-purple-500/10 text-purple-500 rounded-2xl w-fit group-hover:scale-110 transition">
                 <Bus className="w-6 h-6" />
@@ -1229,18 +1475,18 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
       {/* Latest School News & Events */}
       <section id="news" className={`py-20 transition-colors duration-300 border-t ${
         isDarkMode
-          ? 'bg-slate-900 border-slate-800 text-white'
-          : 'bg-rose-50/80 border-rose-200/80 text-slate-900'
+          ? 'bg-[#090D16] border-slate-800/80 text-white'
+          : 'bg-slate-50 border-slate-200 text-slate-900'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
           <div className={`flex flex-col md:flex-row md:items-end justify-between gap-4 border-b pb-6 ${
-            isDarkMode ? 'border-slate-800' : 'border-rose-200'
+            isDarkMode ? 'border-slate-800' : 'border-slate-200'
           }`}>
             <div>
               <span className={`text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full border ${
                 isDarkMode
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                  : 'bg-rose-500/15 text-rose-800 border-rose-500/30'
+                  : 'bg-emerald-500/15 text-emerald-800 border-emerald-500/30'
               }`}>
                 Campus Updates
               </span>
@@ -1248,7 +1494,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
             </div>
             <button
               onClick={() => handleRoleSelect('admin')}
-              className="text-xs font-bold text-rose-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
             >
               <span>View All Circulars in Portal</span>
               <ChevronRight className="w-4 h-4" />
@@ -1256,10 +1502,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            <div className={`rounded-2xl overflow-hidden border space-y-3 p-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-lg hover:shadow-2xl hover:shadow-emerald-500/20 group ${
+            <div className={`rounded-2xl overflow-hidden border space-y-3 p-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 group ${
               isDarkMode
                 ? 'bg-slate-800/80 border-slate-700/80 hover:border-emerald-500/60'
-                : 'bg-white border-rose-200/90 hover:border-emerald-500/60'
+                : 'bg-white border-slate-200 hover:border-emerald-500/60'
             }`}>
               <div className="flex items-center justify-between text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
                 <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Aug 12, 2026</span>
@@ -1271,10 +1517,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               </p>
             </div>
 
-            <div className={`rounded-2xl overflow-hidden border space-y-3 p-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-lg hover:shadow-2xl hover:shadow-blue-500/20 group ${
+            <div className={`rounded-2xl overflow-hidden border space-y-3 p-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-sm hover:shadow-xl hover:shadow-blue-500/10 group ${
               isDarkMode
                 ? 'bg-slate-800/80 border-slate-700/80 hover:border-blue-500/60'
-                : 'bg-white border-rose-200/90 hover:border-blue-500/60'
+                : 'bg-white border-slate-200 hover:border-blue-500/60'
             }`}>
               <div className="flex items-center justify-between text-[11px] text-blue-600 dark:text-blue-400 font-bold">
                 <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Aug 20, 2026</span>
@@ -1286,10 +1532,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               </p>
             </div>
 
-            <div className={`rounded-2xl overflow-hidden border space-y-3 p-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 group ${
+            <div className={`rounded-2xl overflow-hidden border space-y-3 p-4 transition-all duration-300 ease-out transform hover:-translate-y-1.5 hover:scale-[1.02] shadow-sm hover:shadow-xl hover:shadow-purple-500/10 group ${
               isDarkMode
                 ? 'bg-slate-800/80 border-slate-700/80 hover:border-purple-500/60'
-                : 'bg-white border-rose-200/90 hover:border-purple-500/60'
+                : 'bg-white border-slate-200 hover:border-purple-500/60'
             }`}>
               <div className="flex items-center justify-between text-[11px] text-purple-600 dark:text-purple-400 font-bold">
                 <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Sep 01, 2026</span>
@@ -1307,8 +1553,8 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
       {/* Testimonials & Success Stories Section */}
       <section id="testimonials" className={`py-20 transition-colors duration-300 border-t relative overflow-hidden ${
         isDarkMode
-          ? 'bg-slate-950 border-slate-800 text-white'
-          : 'bg-emerald-50/80 border-emerald-200/80 text-slate-900'
+          ? 'bg-[#0F172A]/80 border-slate-800/80 text-white'
+          : 'bg-white border-slate-200 text-slate-900'
       }`}>
         {/* Glow Effects */}
         <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 blur-3xl rounded-full pointer-events-none" />
@@ -1487,15 +1733,15 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
       {/* Frequently Asked Questions (FAQ) Section */}
       <section id="faq" className={`py-20 transition-colors duration-300 border-t ${
         isDarkMode
-          ? 'bg-slate-900 border-slate-800 text-white'
-          : 'bg-blue-50/80 border-blue-200/80 text-slate-900'
+          ? 'bg-[#090D16] border-slate-800/80 text-white'
+          : 'bg-slate-50 border-slate-200 text-slate-900'
       }`}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-12">
           <div className="text-center space-y-3">
             <span className={`text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full border ${
               isDarkMode
                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                : 'bg-blue-500/15 text-blue-800 border-blue-500/30'
+                : 'bg-emerald-500/15 text-emerald-800 border-emerald-500/30'
             }`}>
               Got Questions?
             </span>
@@ -1535,24 +1781,24 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   className={`rounded-2xl border overflow-hidden transition shadow-sm ${
                     isDarkMode
                       ? 'bg-slate-800/80 border-slate-700/80'
-                      : 'bg-white border-blue-200/90'
+                      : 'bg-white border-slate-200'
                   }`}
                 >
                   <button
                     onClick={() => setOpenFaqIndex(isOpen ? null : index)}
                     className={`w-full px-6 py-4 text-left flex items-center justify-between gap-4 focus:outline-none transition ${
-                      isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-blue-50/50'
+                      isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-50'
                     }`}
                   >
                     <span className={`font-bold text-sm flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                      <HelpCircle className="w-4 h-4 text-blue-500 shrink-0" />
+                      <HelpCircle className="w-4 h-4 text-emerald-500 shrink-0" />
                       {item.q}
                     </span>
-                    <ChevronDown className={`w-4 h-4 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-500' : 'text-slate-400'}`} />
+                    <ChevronDown className={`w-4 h-4 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180 text-emerald-500' : 'text-slate-400'}`} />
                   </button>
                   {isOpen && (
                     <div className={`px-6 pb-5 pt-1 text-xs leading-relaxed border-t ${
-                      isDarkMode ? 'text-slate-300 border-slate-700/50' : 'text-slate-600 border-blue-100'
+                      isDarkMode ? 'text-slate-300 border-slate-700/50' : 'text-slate-600 border-slate-100'
                     }`}>
                       {item.a}
                     </div>
@@ -1567,8 +1813,8 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
       {/* Admission Inquiry & Contact Section */}
       <section id="contact" className={`py-20 transition-colors duration-300 border-t ${
         isDarkMode
-          ? 'bg-slate-950 border-slate-800 text-white'
-          : 'bg-orange-50/80 border-orange-200/80 text-slate-900'
+          ? 'bg-[#0F172A]/70 border-slate-800/80 text-white'
+          : 'bg-white border-slate-200 text-slate-900'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid lg:grid-cols-12 gap-12">
@@ -1577,7 +1823,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               <span className={`text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full border ${
                 isDarkMode
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                  : 'bg-orange-500/15 text-orange-800 border-orange-500/30'
+                  : 'bg-emerald-500/15 text-emerald-800 border-emerald-500/30'
               }`}>
                 Get In Touch
               </span>
@@ -1587,10 +1833,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
               </p>
 
               <div className="space-y-4 pt-2 text-xs">
-                <div className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 ease-out transform hover:-translate-y-1 hover:scale-[1.01] shadow-md hover:shadow-xl hover:shadow-emerald-500/15 ${
+                <div className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 ease-out transform hover:-translate-y-1 hover:scale-[1.01] shadow-sm hover:shadow-lg hover:shadow-emerald-500/10 ${
                   isDarkMode
                     ? 'bg-slate-900 border-slate-800 hover:border-emerald-500/50'
-                    : 'bg-white border-orange-200/90 hover:border-emerald-500/50'
+                    : 'bg-slate-50 border-slate-200 hover:border-emerald-500/50'
                 }`}>
                   <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl">
                     <MapPin className="w-5 h-5" />
@@ -1605,10 +1851,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   href={`https://wa.me/916304045279?text=${encodeURIComponent(`Hello BN International Academy Admissions Office, I would like to inquire about school admissions.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 ease-out transform hover:-translate-y-1 hover:scale-[1.01] shadow-md hover:shadow-xl hover:shadow-emerald-500/20 group ${
+                  className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 ease-out transform hover:-translate-y-1 hover:scale-[1.01] shadow-sm hover:shadow-lg hover:shadow-emerald-500/15 group ${
                     isDarkMode
                       ? 'bg-slate-900 border-slate-800 hover:border-emerald-500/50'
-                      : 'bg-white border-orange-200/90 hover:border-emerald-500/50'
+                      : 'bg-slate-50 border-slate-200 hover:border-emerald-500/50'
                   }`}
                 >
                   <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
@@ -1623,10 +1869,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   </div>
                 </a>
 
-                <div className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 ease-out transform hover:-translate-y-1 hover:scale-[1.01] shadow-md hover:shadow-xl hover:shadow-purple-500/15 ${
+                <div className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-all duration-300 ease-out transform hover:-translate-y-1 hover:scale-[1.01] shadow-sm hover:shadow-lg hover:shadow-purple-500/10 ${
                   isDarkMode
                     ? 'bg-slate-900 border-slate-800 hover:border-purple-500/50'
-                    : 'bg-white border-orange-200/90 hover:border-purple-500/50'
+                    : 'bg-slate-50 border-slate-200 hover:border-purple-500/50'
                 }`}>
                   <div className="p-2 bg-purple-500/10 text-purple-500 rounded-xl">
                     <Clock className="w-5 h-5" />
@@ -1640,10 +1886,10 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
             </div>
 
             {/* Admission Inquiry Form */}
-            <div className={`lg:col-span-7 p-6 sm:p-8 rounded-3xl border shadow-xl ${
+            <div className={`lg:col-span-7 p-6 sm:p-8 rounded-3xl border shadow-lg ${
               isDarkMode
                 ? 'bg-slate-900 border-slate-800 text-white'
-                : 'bg-white border-orange-200/90 text-slate-900'
+                : 'bg-slate-50 border-slate-200 text-slate-900'
             }`}>
               <h3 className={`text-lg font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Send an Admission Inquiry</h3>
               <p className={`text-xs mb-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Fill in the details below to receive our official prospectus and callback.</p>
@@ -1670,7 +1916,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                         className={`w-full px-3.5 py-2.5 rounded-xl border focus:outline-none focus:border-emerald-500 ${
                           isDarkMode
                             ? 'bg-slate-950 border-slate-800 text-white'
-                            : 'bg-orange-50/40 border-orange-200 text-slate-900'
+                            : 'bg-white border-slate-300 text-slate-900'
                         }`}
                       />
                     </div>
@@ -1685,7 +1931,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                         className={`w-full px-3.5 py-2.5 rounded-xl border focus:outline-none focus:border-emerald-500 ${
                           isDarkMode
                             ? 'bg-slate-950 border-slate-800 text-white'
-                            : 'bg-orange-50/40 border-orange-200 text-slate-900'
+                            : 'bg-white border-slate-300 text-slate-900'
                         }`}
                       />
                     </div>
@@ -1702,7 +1948,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                         className={`w-full px-3.5 py-2.5 rounded-xl border focus:outline-none focus:border-emerald-500 ${
                           isDarkMode
                             ? 'bg-slate-950 border-slate-800 text-white'
-                            : 'bg-orange-50/40 border-orange-200 text-slate-900'
+                            : 'bg-white border-slate-300 text-slate-900'
                         }`}
                       />
                     </div>
@@ -1714,7 +1960,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                         className={`w-full px-3.5 py-2.5 rounded-xl border focus:outline-none focus:border-emerald-500 ${
                           isDarkMode
                             ? 'bg-slate-950 border-slate-800 text-white'
-                            : 'bg-orange-50/40 border-orange-200 text-slate-900'
+                            : 'bg-white border-slate-300 text-slate-900'
                         }`}
                       >
                         <option value="Kindergarten">Kindergarten / Primary</option>
@@ -1735,7 +1981,7 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                       className={`w-full px-3.5 py-2.5 rounded-xl border focus:outline-none focus:border-emerald-500 resize-none ${
                         isDarkMode
                           ? 'bg-slate-950 border-slate-800 text-white'
-                          : 'bg-orange-50/40 border-orange-200 text-slate-900'
+                          : 'bg-white border-slate-300 text-slate-900'
                       }`}
                     />
                   </div>
@@ -1770,12 +2016,22 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
       </section>
 
       {/* Footer */}
-      <footer className={`text-xs border-t pt-16 pb-12 transition-colors duration-300 ${
+      <footer className={`text-xs border-t-2 pt-16 pb-12 transition-colors duration-300 shadow-2xl relative overflow-hidden ${
         isDarkMode
-          ? 'bg-slate-950 text-slate-400 border-slate-800/80'
-          : 'bg-slate-900 text-slate-300 border-slate-800'
+          ? 'bg-[#030712] text-slate-400 border-t-emerald-500/50 border-b-0 border-x-0'
+          : 'bg-slate-950 text-slate-300 border-slate-800'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
+        {/* Background School Banner Image with Overlay */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <img
+            src={schoolBannerImg}
+            alt="School Banner Footer Background"
+            className="w-full h-full object-cover object-center scale-105 opacity-20 filter saturate-[1.2]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/85 to-slate-950/95" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 relative z-10">
           {/* Main Footer Columns */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 pb-12 border-b border-slate-800/80">
             {/* Col 1: School Identity */}
