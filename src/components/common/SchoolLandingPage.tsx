@@ -3,6 +3,19 @@ import heroBannerImg from '../../assets/images/school_hero_banner_1785341252398.
 import schoolBannerImg from '../../assets/images/school-banner.png';
 import principalBaluNaikImg from '../../assets/images/principal_balu_naik.jpg';
 import { principalImageBase64 } from '../../assets/images/principalImageData';
+
+const FALLBACK_SCHOOL_BANNER = "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=2000&q=80";
+
+const handleBannerImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  const target = e.currentTarget;
+  if (target.src !== heroBannerImg && !target.src.includes('school_hero_banner')) {
+    target.src = heroBannerImg;
+  } else if (target.src !== FALLBACK_SCHOOL_BANNER) {
+    target.src = FALLBACK_SCHOOL_BANNER;
+  } else {
+    target.onerror = null;
+  }
+};
 import { useAuth } from '../../context/AuthContext';
 import {
   GraduationCap,
@@ -449,26 +462,22 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
         {/* Generated Hero Background Image with Overlay */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <img
-            src={schoolBannerImg}
+            src={schoolBannerImg || heroBannerImg || FALLBACK_SCHOOL_BANNER}
             alt="School Campus Banner Background"
-            onError={(e) => {
-              const target = e.currentTarget;
-              target.onerror = null;
-              target.src = heroBannerImg;
-            }}
-            className={`w-full h-full object-cover object-center scale-105 filter saturate-[1.2] ${
-              isDarkMode ? 'opacity-25' : 'opacity-15'
+            onError={handleBannerImgError}
+            className={`w-full h-full object-cover object-center scale-105 filter saturate-[1.25] contrast-[1.05] transition-opacity duration-300 ${
+              isDarkMode ? 'opacity-45' : 'opacity-35'
             }`}
           />
           <div className={`absolute inset-0 ${
             isDarkMode
-              ? 'bg-gradient-to-r from-slate-950 via-slate-900/95 to-slate-950/80'
-              : 'bg-gradient-to-r from-slate-50/95 via-slate-50/90 to-emerald-50/40'
+              ? 'bg-gradient-to-r from-slate-950/80 via-slate-900/65 to-slate-950/50'
+              : 'bg-gradient-to-r from-slate-50/80 via-slate-50/65 to-emerald-50/20'
           }`} />
           <div className={`absolute inset-0 ${
             isDarkMode
-              ? 'bg-gradient-to-b from-slate-900/60 via-transparent to-slate-950'
-              : 'bg-gradient-to-b from-slate-50/30 via-transparent to-slate-100/80'
+              ? 'bg-gradient-to-b from-slate-900/30 via-transparent to-slate-950/85'
+              : 'bg-gradient-to-b from-slate-50/15 via-transparent to-slate-100/60'
           }`} />
         </div>
 
@@ -593,13 +602,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
                   title="Click to view 4K Fullscreen Banner"
                 >
                   <img
-                    src={schoolBannerImg}
+                    src={schoolBannerImg || heroBannerImg || FALLBACK_SCHOOL_BANNER}
                     alt="BN Academy Official School Banner"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.onerror = null;
-                      target.src = heroBannerImg;
-                    }}
+                    onError={handleBannerImgError}
                     className="w-full h-full object-cover group-hover:scale-110 transition duration-700 filter saturate-[1.1]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent pointer-events-none" />
@@ -1063,14 +1068,15 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
             {/* High-Res Banner Image */}
             <div className="relative w-full aspect-[16/10] sm:aspect-[20/8] md:aspect-[28/8] overflow-hidden bg-slate-950">
               <img
-                src={schoolBannerImg}
+                src={schoolBannerImg || heroBannerImg || FALLBACK_SCHOOL_BANNER}
                 alt="BN International Academy Official School Banner"
+                onError={handleBannerImgError}
                 className="w-full h-full object-cover object-center group-hover:scale-105 transition duration-700 filter saturate-[1.15] contrast-[1.05]"
               />
 
               {/* Gradient Vignette Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/40 pointer-events-none" />
-              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 via-transparent to-slate-950/60 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-slate-950/30 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/40 via-transparent to-slate-950/40 pointer-events-none" />
 
               {/* Interactive Hotspot Pins */}
               {(bannerCategoryFilter === 'all' || bannerCategoryFilter === 'academic') && (
@@ -1197,8 +1203,9 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
           {/* Modal Main Image */}
           <div className="relative my-auto w-full max-w-6xl overflow-hidden rounded-3xl border-2 border-blue-500/40 shadow-2xl bg-black">
             <img
-              src={schoolBannerImg}
+              src={schoolBannerImg || heroBannerImg || FALLBACK_SCHOOL_BANNER}
               alt="4K HD School Banner"
+              onError={handleBannerImgError}
               className="w-full h-auto max-h-[75vh] object-contain mx-auto"
             />
           </div>
@@ -2024,11 +2031,12 @@ export const SchoolLandingPage: React.FC<SchoolLandingPageProps> = ({ onEnterDas
         {/* Background School Banner Image with Overlay */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <img
-            src={schoolBannerImg}
+            src={schoolBannerImg || heroBannerImg || FALLBACK_SCHOOL_BANNER}
             alt="School Banner Footer Background"
-            className="w-full h-full object-cover object-center scale-105 opacity-20 filter saturate-[1.2]"
+            onError={handleBannerImgError}
+            className="w-full h-full object-cover object-center scale-105 opacity-40 filter saturate-[1.25]"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/85 to-slate-950/95" />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/75 via-slate-950/60 to-slate-950/85" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 relative z-10">
