@@ -20,6 +20,24 @@ html.dark #root {
   color: #f8fafc;
 }
 
+/* Header and Footer dark mode depth styling */
+html.dark header,
+.dark header {
+  background-color: #0f172a !important; /* bg-slate-900 for header */
+  border-color: #1e293b !important;
+}
+
+html.dark footer,
+.dark footer {
+  background-color: #020617 !important; /* bg-slate-950 for deep footer contrast */
+  border-color: #0f172a !important;
+}
+
+html.dark main,
+.dark main {
+  background-color: #090d16 !important;
+}
+
 /* Backgrounds in dark mode */
 html.dark .bg-\[\#F1F5F9\],
 html.dark .bg-slate-50,
